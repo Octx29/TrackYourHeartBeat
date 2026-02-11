@@ -4,32 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>PulseHeart Organic</title>
+    <title>PulseHeart Sport</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
 
     <style>
         :root {
-            --primary: #e91e63;
-            --bg-color: #fce4ec;
-            --glass: rgba(255, 255, 255, 0.6);
-            --shadow: 0 10px 30px rgba(233, 30, 99, 0.15);
+            --primary: #ff3d00; /* สีส้มแดง (Sporty) */
+            --bg-color: #fff3e0;
+            --glass: rgba(255, 255, 255, 0.8);
+            --shadow: 0 10px 40px rgba(255, 61, 0, 0.2);
         }
 
         body { 
             background: var(--bg-color);
-            background-image: radial-gradient(at top left, #f8bbd0, transparent), radial-gradient(at bottom right, #f48fb1, transparent);
+            background-image: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
             font-family: 'Fredoka', sans-serif;
             margin: 0; height: 100vh; overflow: hidden;
             display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            user-select: none; color: #880e4f;
+            user-select: none; color: #bf360c;
         }
 
         /* --- SETUP MODAL --- */
         #setupScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(252, 228, 236, 0.98); z-index: 1000;
+            background: rgba(255, 243, 224, 0.98); z-index: 1000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         .modal-card {
@@ -38,13 +38,13 @@
         }
         input { 
             width: 100%; padding: 15px; font-size: 24px; text-align: center;
-            border: 2px solid #f06292; border-radius: 20px; outline: none; margin: 20px 0;
+            border: 2px solid var(--primary); border-radius: 20px; outline: none; margin: 20px 0;
             font-family: 'Fredoka'; font-weight: bold; color: var(--primary);
         }
 
         /* --- UI ELEMENTS --- */
         .header { margin-top: 50px; text-align: center; z-index: 2; }
-        .app-title { font-size: 26px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .app-title { font-size: 28px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; justify-content: center; }
         
         .monitor-ring {
             position: relative; width: 280px; height: 280px;
@@ -53,20 +53,25 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
 
-        .heart-icon { font-size: 150px; color: var(--primary); opacity: 0.1; position: absolute; transition: transform 0.1s; }
+        .icon-flash { 
+            font-size: 160px; color: var(--primary); opacity: 0.1; 
+            position: absolute; transition: transform 0.05s; 
+        }
         
         .bpm-val { 
-            font-size: 90px; font-weight: 700; line-height: 1; color: var(--primary); 
-            text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
-            z-index: 2;
+            font-size: 100px; font-weight: 800; line-height: 1; color: var(--primary); 
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.8); z-index: 2;
         }
-        .bpm-lbl { font-size: 18px; opacity: 0.6; font-weight: 600; margin-top: 5px; z-index: 2; }
+        .bpm-lbl { 
+            font-size: 18px; color: #e64a19; font-weight: 700; margin-top: 5px; z-index: 2; 
+            background: rgba(255,255,255,0.5); padding: 5px 15px; border-radius: 20px;
+        }
 
         .graph-box {
             width: 90%; height: 100px; background: white; 
             border-radius: 25px; overflow: hidden; position: relative;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.03);
-            border: 2px solid rgba(255,255,255,0.5);
+            border: 2px solid rgba(255,255,255,0.8);
         }
         canvas { width: 100%; height: 100%; display: block; }
 
@@ -74,14 +79,14 @@
             width: 80%; padding: 20px; border: none; border-radius: 30px;
             font-size: 20px; font-weight: 700; color: white;
             background: var(--primary); cursor: pointer;
-            box-shadow: 0 10px 20px rgba(233, 30, 99, 0.3);
+            box-shadow: 0 10px 20px rgba(255, 61, 0, 0.3);
             margin-bottom: 40px; transition: transform 0.1s;
         }
         .btn:active { transform: scale(0.96); }
-        .btn.stop { background: #d32f2f; }
+        .btn.stop { background: #d32f2f; box-shadow: 0 10px 20px rgba(211, 47, 47, 0.3); }
 
-        /* Animation class for REAL beat */
-        .pump { transform: scale(1.15); opacity: 0.3 !important; }
+        /* Fast Animation for High BPM */
+        .flash-beat { transform: scale(1.1); opacity: 0.4 !important; }
 
         video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
     </style>
@@ -90,29 +95,30 @@
 
     <div id="setupScreen">
         <div class="modal-card">
-            <span class="material-symbols-rounded" style="font-size: 60px; color: var(--primary);">favorite</span>
-            <h2 style="color: var(--primary);">ระบุอายุ</h2>
+            <span class="material-symbols-rounded" style="font-size: 60px; color: var(--primary);">bolt</span>
+            <h2 style="color: var(--primary); margin: 10px 0;">Sport Mode</h2>
+            <p style="font-size: 14px; color: #666;">โหมดวัดความเร็วสูง (90-180 BPM)<br>กรุณาระบุอายุ</p>
             <input type="number" id="ageInput" placeholder="25" inputmode="numeric">
-            <button class="btn" onclick="startApp()" style="margin-bottom: 0;">ไปต่อ</button>
+            <button class="btn" onclick="startApp()" style="margin-bottom: 0;">เริ่มใช้งาน</button>
         </div>
     </div>
 
     <div class="header">
-        <div class="app-title"><span class="material-symbols-rounded">ecg_heart</span> PulseHeart</div>
-        <div id="userDisplay" style="font-size: 14px; opacity: 0.6; margin-top: 5px;">Organic Mode</div>
+        <div class="app-title"><span class="material-symbols-rounded">cardiology</span> PulseSport</div>
+        <div id="userDisplay" style="font-size: 14px; opacity: 0.6; margin-top: 5px;">High Sensitivity</div>
     </div>
 
     <div class="monitor-ring">
-        <span class="material-symbols-rounded heart-icon" id="heartIcon">favorite</span>
+        <span class="material-symbols-rounded icon-flash" id="heartIcon">bolt</span>
         <div id="bpmDisplay" class="bpm-val">--</div>
-        <div class="bpm-lbl">BPM Real-time</div>
+        <div class="bpm-lbl">BPM</div>
     </div>
 
     <div class="graph-box">
         <canvas id="graphCanvas"></canvas>
     </div>
 
-    <button id="actionBtn" class="btn" onclick="toggleMeasure()">เริ่มวัด (START)</button>
+    <button id="actionBtn" class="btn" onclick="toggleMeasure()">แตะเพื่อเริ่ม (START)</button>
 
     <video id="video" playsinline></video>
 
@@ -125,7 +131,7 @@
         let graphCtx = graphCanvas.getContext('2d');
 
         let isRunning = false, rafId;
-        let signalBuffer = new Array(150).fill(0.5); // เพิ่มความละเอียดกราฟ
+        let signalBuffer = new Array(120).fill(0.5);
         let lastBeatTime = 0;
         let minVal = 0, maxVal = 0;
         let bpmHistory = []; 
@@ -135,7 +141,7 @@
             if(val > 5 && val < 100) {
                 userAge = val;
                 document.getElementById('setupScreen').style.display = 'none';
-                document.getElementById('userDisplay').innerText = `Age: ${userAge} | Max HR: ${220-userAge}`;
+                document.getElementById('userDisplay').innerText = `Target: 90-160 BPM | Age: ${userAge}`;
             } else alert("ใส่อายุให้ถูกต้อง");
         }
 
@@ -149,7 +155,9 @@
             let btn = document.getElementById('actionBtn');
             if(!isRunning) {
                 try {
-                    let stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    let stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: "environment", width: {ideal: 100}, height: {ideal: 100} } 
+                    });
                     video.srcObject = stream; await video.play();
                     
                     try { 
@@ -160,7 +168,6 @@
                     isRunning = true;
                     btn.innerText = "หยุด (STOP)"; btn.classList.add('stop');
                     
-                    // Reset
                     bpmHistory = [];
                     document.getElementById('bpmDisplay').innerText = "--";
                     minVal = 0; maxVal = 0;
@@ -177,52 +184,47 @@
         function loop() {
             if(!isRunning) return;
 
-            // 1. Image Processing
+            // 1. Read Camera (Fast Sampling)
             ctx.drawImage(video, 0, 0, 30, 30);
-            let frame = ctx.getImageData(10, 10, 10, 10).data;
-            let total = 0;
-            for(let i=0; i<frame.length; i+=4) total += frame[i];
-            let avg = total / (frame.length/4);
+            let frame = ctx.getImageData(15, 15, 1, 1).data; // อ่านแค่จุดเดียวตรงกลางเพื่อความไวสูงสุด
+            let avg = frame[0]; // ใช้แค่สีแดง (Red Channel)
 
-            // 2. Raw Signal Processing (ลดการเกลี่ยค่าลงเพื่อให้กราฟหยักตามจริง)
+            // 2. High Sensitivity Signal Processing
             if(minVal === 0) { minVal = avg; maxVal = avg; }
             
-            // *Organic Decay*: คืนค่าเร็วขึ้นเพื่อให้กราฟดิ้นได้
+            // *Fast Decay*: รีเซ็ตค่า Min/Max ไวขึ้นมาก เพื่อรองรับการเปลี่ยนแปลงเร็วๆ
             minVal = Math.min(minVal, avg); maxVal = Math.max(maxVal, avg);
-            minVal += 0.5; maxVal -= 0.5; 
+            minVal += 0.8; maxVal -= 0.8; 
 
             let range = Math.max(1, maxVal - minVal);
             let rawVal = (avg - minVal) / range;
             let inverted = 1.0 - rawVal; 
 
-            // Update Graph
             signalBuffer.push(inverted); 
-            if(signalBuffer.length > 150) signalBuffer.shift();
+            if(signalBuffer.length > 120) signalBuffer.shift();
             drawGraph();
 
-            // 3. Sensitive Peak Detection
-            // ใช้ Threshold ต่ำลงนิดหน่อย (0.6) เพื่อจับ Pulse เล็กๆ ได้
-            if(inverted > 0.6) {
+            // 3. Sport Mode Peak Detection
+            // ลด Threshold ลงเหลือ 0.55 (ไวขึ้น)
+            if(inverted > 0.55) {
                 let now = Date.now();
-                // Debounce 300ms (Max 200 BPM)
-                if(now - lastBeatTime > 300) { 
-                    // ตรวจสอบว่าเป็นยอดคลื่นจริงๆ (Slope เปลี่ยนจากขึ้นเป็นลง)
-                    // เช็คย้อนหลัง 3 ค่า: (prev < current) && (current > next)
-                    // แต่วิธีง่ายกว่าคือใช้ Time Gate
+                // **จุดสำคัญที่แก้ปัญหา**: ลด Dead Zone ลงเหลือ 260ms
+                // 260ms = รองรับได้สูงสุดถึง 230 BPM (ถ้าเร็วกว่านี้ค่อยตัดทิ้ง)
+                if(now - lastBeatTime > 260) { 
                     let interval = (now - lastBeatTime) / 1000;
                     lastBeatTime = now;
                     
                     let instantBPM = 60 / interval;
 
-                    // Filter ค่าที่เป็นไปไม่ได้ทิ้ง (45-190)
-                    if(instantBPM > 45 && instantBPM < 190) {
+                    // ปลดล็อค Range เป็น 50 - 220 BPM
+                    if(instantBPM > 50 && instantBPM < 220) {
                         updateBPM(Math.round(instantBPM));
                         
-                        // *Trigger Heart Animation* ทันทีที่เจอ Peak
+                        // Flash Animation
                         let icon = document.getElementById('heartIcon');
-                        icon.classList.remove('pump');
-                        void icon.offsetWidth; // Reset DOM
-                        icon.classList.add('pump');
+                        icon.classList.remove('flash-beat');
+                        void icon.offsetWidth;
+                        icon.classList.add('flash-beat');
                     }
                 }
             }
@@ -230,25 +232,21 @@
         }
 
         function updateBPM(newVal) {
-            // *Organic Smoothing*
-            // สูตร: (ค่าเก่า x 0.7) + (ค่าใหม่ x 0.3)
-            // วิธีนี้ทำให้ค่าขยับตามจริงได้เร็ว แต่ไม่กระโดดน่าเกลียด
+            // Sport Smoothing: ตอบสนองไว (ให้น้ำหนักค่าใหม่ 60%)
             if(bpmHistory.length === 0) {
                 bpmHistory.push(newVal);
             } else {
                 let prev = bpmHistory[bpmHistory.length-1];
-                // ยอมให้ขยับได้ไม่เกิน 5 BPM ต่อครั้ง เพื่อกัน Noise กระชาก
+                // ยอมให้กระโดดได้มากขึ้น (20 BPM) เผื่อหัวใจเต้นผิดจังหวะตอนเหนื่อย
                 let diff = newVal - prev;
-                if(Math.abs(diff) > 10) newVal = prev + (diff > 0 ? 5 : -5);
+                if(Math.abs(diff) > 20) newVal = prev + (diff > 0 ? 10 : -10);
                 
-                // Weighted Average (เน้นค่าปัจจุบันมากขึ้น)
-                let organicVal = Math.round((prev * 0.6) + (newVal * 0.4));
-                bpmHistory.push(organicVal);
+                let fastVal = Math.round((prev * 0.4) + (newVal * 0.6));
+                bpmHistory.push(fastVal);
             }
             
             if(bpmHistory.length > 5) bpmHistory.shift();
             
-            // แสดงผลทันที
             document.getElementById('bpmDisplay').innerText = bpmHistory[bpmHistory.length-1];
         }
 
@@ -256,24 +254,23 @@
             let w = graphCanvas.width, h = graphCanvas.height;
             graphCtx.clearRect(0,0,w,h);
             
-            // Draw Grid (Medical Look)
-            graphCtx.strokeStyle = "rgba(233, 30, 99, 0.1)";
+            // Background Grid
+            graphCtx.strokeStyle = "rgba(0,0,0,0.05)";
             graphCtx.lineWidth = 1;
             graphCtx.beginPath();
-            for(let i=0; i<w; i+=40) { graphCtx.moveTo(i,0); graphCtx.lineTo(i,h); }
+            for(let i=0; i<w; i+=20) { graphCtx.moveTo(i,0); graphCtx.lineTo(i,h); }
             graphCtx.stroke();
 
-            // Draw Signal
-            graphCtx.strokeStyle = "#e91e63"; 
-            graphCtx.lineWidth = 4;
+            // Signal Line (High Contrast)
+            graphCtx.strokeStyle = "#ff3d00"; 
+            graphCtx.lineWidth = 5;
             graphCtx.lineJoin = "round";
             graphCtx.beginPath();
             
-            let step = w / 150;
+            let step = w / 120;
             for(let i=0; i<signalBuffer.length; i++) {
-                // ขยาย Amplitude ให้เต็มกราฟมากขึ้น
-                let y = h - (signalBuffer[i] * h * 0.9) - (h*0.05);
-                if(i===0) graphCtx.moveTo(0,y); else graphCtx.lineTo(i*step, y);
+                let y = h - (signalBuffer[i] * h * 0.85) - (h*0.07);
+                if(i===0) graphCtx.moveTo(0, y); else graphCtx.lineTo(i * step, y);
             }
             graphCtx.stroke();
         }
