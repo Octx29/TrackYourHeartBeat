@@ -1,202 +1,236 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
-    <title>PulseGuard Web</title>
+    <title>Universal Pulse Average</title>
     <style>
-        :root { --primary: #00ff88; --bg: #000000; --dim: #111; }
-        body { background: var(--bg); color: white; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; height: 100vh; user-select: none; -webkit-user-select: none; }
-        
-        /* Layout */
-        .header { margin-top: 20px; text-align: center; z-index: 2; }
-        .title { font-size: 24px; font-weight: bold; color: var(--primary); text-shadow: 0 0 10px rgba(0,255,136,0.5); letter-spacing: 2px; }
-        .subtitle { font-size: 10px; color: #666; margin-top: 5px; text-transform: uppercase; }
-
-        /* Main Display */
-        .monitor-ring {
-            position: relative; width: 260px; height: 260px; 
-            margin-top: 40px; border-radius: 50%; 
-            border: 1px solid #333;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5) inset;
-        }
-        
-        .progress-ring {
-            position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
-            border-radius: 50%; border: 5px solid transparent;
-            border-top-color: var(--primary);
-            animation: spin 1.5s linear infinite;
-            display: none;
+        :root { --primary: #00e5ff; --bg: #0d0d0d; --panel: #1a1a1a; --text: #ffffff; }
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            height: 100vh; overflow: hidden; user-select: none;
         }
 
-        .bpm-container { text-align: center; z-index: 10; }
-        .bpm-value { font-size: 80px; font-weight: bold; color: white; text-shadow: 0 0 20px var(--primary); line-height: 1; transition: transform 0.1s; }
-        .bpm-label { font-size: 16px; color: var(--primary); margin-top: 5px; font-weight: bold; }
-        .hint { font-size: 12px; color: #888; margin-top: 10px; display: none; }
+        /* UI Components */
+        .header { margin-top: 20px; text-align: center; }
+        .title { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; }
+        .subtitle { font-size: 12px; color: #888; }
+
+        .monitor-box {
+            position: relative; width: 280px; height: 280px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: radial-gradient(circle, #222 0%, #000 70%);
+            border-radius: 50%;
+            border: 4px solid #333;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.1);
+        }
+
+        .bpm-display { font-size: 90px; font-weight: 700; line-height: 1; text-shadow: 0 0 15px var(--primary); }
+        .bpm-unit { font-size: 16px; color: #aaa; margin-top: 5px; }
+        
+        /* Stats Panel */
+        .stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--panel); padding: 15px; border-radius: 12px;
+            text-align: center; border: 1px solid #333;
+        }
+        .stat-value { font-size: 24px; font-weight: bold; color: var(--primary); }
+        .stat-label { font-size: 12px; color: #888; margin-top: 2px; }
 
         /* Graph */
-        .graph-box {
-            width: 90%; height: 100px; background: #050505; 
-            border: 1px solid #222; border-radius: 12px; 
-            margin-top: auto; margin-bottom: 20px; 
-            position: relative; overflow: hidden;
+        .graph-container {
+            width: 100%; height: 80px; background: #000;
+            border-top: 1px solid #333; border-bottom: 1px solid #333;
+            position: relative;
         }
         canvas { width: 100%; height: 100%; display: block; }
-        .status-text { position: absolute; bottom: 8px; right: 10px; font-size: 10px; color: #444; }
 
         /* Controls */
+        .btn-container { width: 100%; padding: 20px; box-sizing: border-box; background: #111; border-top-left-radius: 20px; border-top-right-radius: 20px; }
         .btn {
-            width: 80%; padding: 18px; font-size: 16px; font-weight: bold; 
-            background: var(--primary); color: black; border: none; 
-            border-radius: 50px; margin-bottom: 40px; cursor: pointer; 
-            box-shadow: 0 0 20px rgba(0,255,136,0.3); 
-            transition: 0.2s; text-transform: uppercase;
+            width: 100%; padding: 18px; font-size: 18px; font-weight: bold;
+            border: none; border-radius: 12px; cursor: pointer;
+            background: var(--primary); color: #000;
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+            transition: transform 0.1s;
         }
-        .btn:active { transform: scale(0.96); }
-        .btn.stop { background: #ff3333; box-shadow: 0 0 20px rgba(255,51,51,0.3); color: white; }
+        .btn:active { transform: scale(0.98); }
+        .btn.stop { background: #ff4757; color: white; box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3); }
 
         /* Hidden Video */
-        video { position: absolute; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .beat { transform: scale(1.15); }
+        video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        
+        /* Animation */
+        .beat { animation: pump 0.15s ease-out; }
+        @keyframes pump { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="title">PULSE GUARD</div>
-        <div class="subtitle">GitHub Web Edition</div>
+        <div class="title">Pulse Average AI</div>
+        <div class="subtitle">Universal Web Monitor</div>
     </div>
 
-    <div class="monitor-ring">
-        <div class="progress-ring" id="spinner"></div>
-        <div class="bpm-container">
-            <div class="bpm-value" id="bpmDisplay">--</div>
-            <div class="bpm-label">BPM</div>
-            <div class="hint" id="hintText">แตะปุ่มเพื่อเริ่ม</div>
+    <div class="monitor-box">
+        <div id="bpmVal" class="bpm-display">--</div>
+        <div class="bpm-unit">BPM (Real-time)</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div id="avgVal" class="stat-value">--</div>
+            <div class="stat-label">ค่าเฉลี่ย (AVG)</div>
+        </div>
+        <div class="stat-card">
+            <div id="confidenceVal" class="stat-value">0%</div>
+            <div class="stat-label">ความเสถียร</div>
         </div>
     </div>
 
-    <div class="graph-box">
+    <div class="graph-container">
         <canvas id="graphCanvas"></canvas>
-        <div class="status-text" id="status">READY</div>
     </div>
 
-    <button class="btn" id="actionBtn" onclick="toggleState()">START MEASURE</button>
+    <div class="btn-container">
+        <button id="actionBtn" class="btn" onclick="toggleMeasure()">เริ่มวัด (START)</button>
+    </div>
+
     <video id="video" playsinline></video>
 
     <script>
-        let isRunning = false;
         let video = document.getElementById('video');
         let canvas = document.createElement('canvas');
         let ctx = canvas.getContext('2d', { willReadFrequently: true });
-        
         let graphCanvas = document.getElementById('graphCanvas');
         let graphCtx = graphCanvas.getContext('2d');
         
-        // Data & Logic
+        let isRunning = false;
+        let animationFrame;
+        
+        // Data Storage
         let signalBuffer = new Array(100).fill(0.5);
-        let bpmHistory = [];
+        let bpmHistory = []; // เก็บค่า BPM ทั้งหมดเพื่อหาค่าเฉลี่ย
+        let sessionReadings = []; // เก็บค่าที่เสถียรแล้วเพื่อสรุปผล
         let lastBeatTime = 0;
+        
+        // Algorithm Vars
         let minVal = 0, maxVal = 0;
-        let animationId;
+        let stabilityCounter = 0;
 
-        function resizeGraph() {
+        // Resize Handling
+        function resize() {
             graphCanvas.width = graphCanvas.offsetWidth;
             graphCanvas.height = graphCanvas.offsetHeight;
         }
-        window.onresize = resizeGraph;
-        resizeGraph();
+        window.onresize = resize;
+        resize();
 
-        async function toggleState() {
+        async function toggleMeasure() {
             let btn = document.getElementById('actionBtn');
-            let spinner = document.getElementById('spinner');
-            let hint = document.getElementById('hintText');
-
+            
             if (!isRunning) {
                 // --- START ---
                 try {
                     let stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: "environment", width: { ideal: 128 }, height: { ideal: 128 } }
+                        video: { facingMode: "environment", width: { ideal: 150 }, height: { ideal: 150 } }
                     });
                     video.srcObject = stream;
                     await video.play();
 
-                    // พยายามเปิดแฟลช (เฉพาะ Chrome/Safari บางรุ่น)
+                    // เปิดแฟลช (ถ้ามี)
                     try {
                         let track = stream.getVideoTracks()[0];
                         await track.applyConstraints({ advanced: [{ torch: true }] });
-                    } catch(e) { console.log("Flash not supported via web"); }
+                    } catch(e) {}
 
                     isRunning = true;
-                    btn.innerText = "STOP";
+                    btn.innerText = "หยุดและสรุปผล (STOP)";
                     btn.classList.add('stop');
-                    spinner.style.display = 'block';
-                    hint.style.display = 'block';
-                    hint.innerText = "วางนิ้วปิดเลนส์กล้อง";
-                    document.getElementById('status').innerText = "SENSING...";
+                    
+                    // Reset Values
+                    bpmHistory = [];
+                    sessionReadings = [];
+                    document.getElementById('bpmVal').innerText = "--";
+                    document.getElementById('avgVal').innerText = "--";
+                    document.getElementById('confidenceVal').innerText = "0%";
+                    
                     loop();
                 } catch (err) {
-                    alert("ไม่สามารถเปิดกล้องได้: " + err.message + "\n(กรุณาอนุญาตสิทธิ์ใน Safari)");
+                    alert("กรุณาอนุญาตให้ใช้กล้องใน Browser Settings\n(Error: " + err.message + ")");
                 }
             } else {
-                // --- STOP ---
-                isRunning = false;
-                cancelAnimationFrame(animationId);
-                let tracks = video.srcObject?.getTracks();
-                if (tracks) tracks.forEach(t => t.stop());
-                video.srcObject = null;
-
-                btn.innerText = "START MEASURE";
-                btn.classList.remove('stop');
-                spinner.style.display = 'none';
-                hint.style.display = 'none';
-                document.getElementById('bpmDisplay').innerText = "--";
-                document.getElementById('status').innerText = "READY";
-                signalBuffer.fill(0.5);
-                drawGraph();
+                // --- STOP & SUMMARIZE ---
+                stopCamera();
+                summarizeResult();
             }
+        }
+
+        function stopCamera() {
+            isRunning = false;
+            cancelAnimationFrame(animationFrame);
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(t => t.stop());
+                video.srcObject = null;
+            }
+            let btn = document.getElementById('actionBtn');
+            btn.innerText = "เริ่มวัดใหม่ (START)";
+            btn.classList.remove('stop');
+        }
+
+        function summarizeResult() {
+            let finalAvg = "--";
+            if (sessionReadings.length > 5) {
+                // ตัดค่าผิดปกติออก (Trim Outliers)
+                sessionReadings.sort((a,b) => a-b);
+                let validData = sessionReadings.slice(2, -2); // ตัด 2 ค่าบนและ 2 ค่าล่าง
+                if (validData.length > 0) {
+                    let sum = validData.reduce((a,b) => a+b, 0);
+                    finalAvg = Math.round(sum / validData.length);
+                }
+            }
+            alert(`📊 สรุปผลการวัด\n\nค่าเฉลี่ยของคุณคือ: ${finalAvg} BPM\n\n(จากการวัด ${sessionReadings.length} ตัวอย่าง)`);
+            document.getElementById('avgVal').innerText = finalAvg;
         }
 
         function loop() {
             if (!isRunning) return;
 
-            // 1. Image Processing
-            canvas.width = 40; canvas.height = 40; // ลดขนาดเพื่อความเร็ว
+            // 1. อ่านค่าสี
+            canvas.width = 40; canvas.height = 40;
             ctx.drawImage(video, 0, 0, 40, 40);
-            let frame = ctx.getImageData(15, 15, 10, 10); // อ่านแค่ตรงกลาง 10x10
+            let frame = ctx.getImageData(15, 15, 10, 10); // Center crop 10x10
             let data = frame.data;
             let totalRed = 0;
-
+            
             for (let i = 0; i < data.length; i += 4) {
                 totalRed += data[i];
             }
             let avgRed = totalRed / (data.length / 4);
 
-            // 2. Algorithm (Pulse Detection)
+            // 2. Process Signal
             if (minVal === 0) { minVal = avgRed; maxVal = avgRed; }
-            
-            // Auto-Gain Adjustment
             minVal = Math.min(minVal, avgRed);
             maxVal = Math.max(maxVal, avgRed);
-            minVal += 0.5; // Fast Recovery
-            maxVal -= 0.5;
-
+            
+            // Auto-Gain Recovery
+            minVal += 0.5; maxVal -= 0.5;
+            
             let range = Math.max(1, maxVal - minVal);
             let normalized = (avgRed - minVal) / range;
-            let inverted = 1.0 - normalized; // ชีพจรเต้น = แสงมืดลง
+            let inverted = 1.0 - normalized; // Pulse = Darker
 
             // Update Graph
             signalBuffer.push(inverted);
             if (signalBuffer.length > 100) signalBuffer.shift();
             drawGraph();
 
-            // 3. Peak Finding
-            if (inverted > 0.65) { // Threshold
+            // 3. Peak Detection
+            if (inverted > 0.60) { // Threshold
                 let now = Date.now();
                 if (now - lastBeatTime > 300) { // Debounce 300ms
                     let interval = (now - lastBeatTime) / 1000;
@@ -204,41 +238,55 @@
                     let bpm = 60 / interval;
 
                     if (bpm > 45 && bpm < 200) {
-                        updateBPM(Math.round(bpm));
+                        updateStats(Math.round(bpm));
                         // Beat Effect
-                        let disp = document.getElementById('bpmDisplay');
-                        disp.classList.add('beat');
-                        setTimeout(() => disp.classList.remove('beat'), 100);
+                        document.querySelector('.monitor-box').classList.add('beat');
+                        setTimeout(() => document.querySelector('.monitor-box').classList.remove('beat'), 100);
                     }
                 }
             }
 
-            animationId = requestAnimationFrame(loop);
+            animationFrame = requestAnimationFrame(loop);
         }
 
-        function updateBPM(bpm) {
+        function updateStats(bpm) {
+            // Smooth BPM (Running Average of last 5)
             bpmHistory.push(bpm);
             if (bpmHistory.length > 5) bpmHistory.shift();
-            let avg = Math.round(bpmHistory.reduce((a,b)=>a+b,0) / bpmHistory.length);
-            document.getElementById('bpmDisplay').innerText = avg;
-            document.getElementById('status').innerText = "SIGNAL LOCKED";
-            document.getElementById('status').style.color = "#00ff88";
+            let smoothBPM = Math.round(bpmHistory.reduce((a,b) => a+b, 0) / bpmHistory.length);
+            
+            // Show Current
+            document.getElementById('bpmVal').innerText = smoothBPM;
+            
+            // Add to Session (for Final Average) - เก็บเฉพาะค่าที่นิ่งๆ
+            if (bpmHistory.length >= 5) {
+                sessionReadings.push(smoothBPM);
+                stabilityCounter = Math.min(100, stabilityCounter + 5);
+            } else {
+                stabilityCounter = Math.max(0, stabilityCounter - 2);
+            }
+            
+            // Real-time Average Calculation
+            if (sessionReadings.length > 0) {
+                let sum = sessionReadings.reduce((a,b) => a+b, 0);
+                document.getElementById('avgVal').innerText = Math.round(sum / sessionReadings.length);
+            }
+            
+            document.getElementById('confidenceVal').innerText = stabilityCounter + "%";
         }
 
         function drawGraph() {
             let w = graphCanvas.width;
             let h = graphCanvas.height;
             graphCtx.clearRect(0, 0, w, h);
-            
-            graphCtx.beginPath();
-            graphCtx.strokeStyle = "#00ff88";
+            graphCtx.strokeStyle = "#00e5ff";
             graphCtx.lineWidth = 2;
-            graphCtx.lineJoin = "round";
-
+            graphCtx.beginPath();
+            
             let step = w / 100;
             for (let i = 0; i < signalBuffer.length; i++) {
-                let y = h - (signalBuffer[i] * h * 0.8) - 10;
-                if (i === 0) graphCtx.moveTo(0, y);
+                let y = h - (signalBuffer[i] * h * 0.8) - (h * 0.1);
+                if (i===0) graphCtx.moveTo(0, y);
                 else graphCtx.lineTo(i * step, y);
             }
             graphCtx.stroke();
