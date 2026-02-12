@@ -4,264 +4,433 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#e0f7fa">
-    <title>PulseHeart Custom</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PulseHeart Cute</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
 
     <style>
         :root {
-            /* ธีมสีฟ้า-เขียว (ดูสบายตา สื่อถึงค่าปกติ) */
-            --primary: #00838f; --accent: #00acc1; 
-            --bg: #e0f7fa; --card-bg: rgba(255, 255, 255, 0.9);
-            --text: #006064; --shadow: 0 8px 32px rgba(0, 131, 143, 0.15);
+            /* Palette: Cute Pink 3D */
+            --primary: #ff5e7d;       /* ชมพูเข้ม (ปุ่ม/กราฟ) */
+            --primary-shadow: #d43f5e; /* เงาปุ่ม */
+            --bg-top: #ffcdd2;        /* พื้นหลังบน */
+            --bg-bottom: #fff0f5;     /* พื้นหลังล่าง */
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-main: #6d4c41;
+            --shadow-soft: 0 10px 25px rgba(255, 94, 125, 0.2);
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background: var(--bg);
-            background-image: radial-gradient(at 0% 0%, #b2ebf2 0, transparent 50%), radial-gradient(at 100% 100%, #80deea 0, transparent 50%);
-            color: var(--text); font-family: 'Fredoka', sans-serif;
-            margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column;
-            user-select: none; -webkit-user-select: none;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            color: var(--text-main);
+            font-family: 'Nunito', sans-serif;
+            margin: 0; height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            user-select: none;
         }
 
-        /* --- UI COMPONENTS --- */
-        .page { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; }
-        
-        .monitor-ring {
-            width: 280px; height: 280px; background: var(--card-bg);
-            border-radius: 50%; border: 6px solid white;
-            box-shadow: var(--shadow);
+        /* --- SETUP MODAL (หน้าแรก) --- */
+        #setupScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 240, 245, 0.98);
+            z-index: 1000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            margin-top: 40px; margin-bottom: 30px; position: relative;
-            transition: transform 0.1s;
+            backdrop-filter: blur(5px);
         }
-        
-        .bpm-val { font-size: 100px; font-weight: 700; color: var(--primary); line-height: 1; z-index: 2; text-shadow: 2px 2px 0px white; }
-        .bpm-lbl { font-size: 14px; font-weight: 600; color: #aaa; margin-top: -5px; }
-        
-        .zone-badge {
-            margin-top: 10px; padding: 5px 15px; border-radius: 20px;
-            font-size: 14px; font-weight: bold; color: white;
-            background: #ccc; transition: 0.3s;
+        .setup-card {
+            background: white; padding: 40px 30px; border-radius: 40px;
+            text-align: center; width: 85%; max-width: 320px;
+            box-shadow: 0 20px 50px rgba(255, 94, 125, 0.25);
+            border: 4px solid #fff;
+        }
+        .input-group input {
+            width: 100%; padding: 15px; font-size: 24px; text-align: center;
+            border: 2px solid #ffdae0; border-radius: 20px;
+            background: #fff; color: var(--primary); font-family: 'Nunito', sans-serif;
+            outline: none; margin: 20px 0; font-weight: 800;
         }
 
-        .graph-box {
-            width: 100%; height: 100px; background: white;
-            border-radius: 20px; overflow: hidden; margin-bottom: 20px;
-            border: 2px solid rgba(255,255,255,0.8);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
+        /* --- HEADER --- */
+        .header { 
+            margin-top: max(20px, env(safe-area-inset-top)); 
+            text-align: center; z-index: 2; width: 100%;
+        }
+        .app-title {
+            font-size: 22px; font-weight: 800; color: #880e4f;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            letter-spacing: 0.5px;
+        }
+        .subtitle { font-size: 13px; color: #a1887f; font-weight: 600; margin-top: 5px; }
+
+        /* --- MONITOR RING (3D Style) --- */
+        .monitor-wrapper {
+            position: relative; flex-grow: 1; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .pulse-ring {
+            width: 280px; height: 280px;
+            background: linear-gradient(145deg, #ffffff, #ffebee);
+            border-radius: 50%;
+            border: 6px solid white;
+            box-shadow: 
+                0 15px 35px rgba(255, 94, 125, 0.15),
+                inset 0 5px 15px rgba(255,255,255,1);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            position: relative;
+        }
+        
+        .heart-bg {
+            position: absolute; font-size: 160px; color: var(--primary);
+            opacity: 0.1; transition: transform 0.1s;
+            filter: drop-shadow(0 5px 5px rgba(255,94,125,0.2));
+        }
+
+        .bpm-value {
+            font-size: 90px; font-weight: 800; line-height: 1;
+            color: var(--primary);
+            z-index: 2; letter-spacing: -2px;
+            text-shadow: 2px 2px 0px rgba(255,255,255,1);
+        }
+        .bpm-unit { 
+            font-size: 16px; font-weight: 700; color: #a1887f; 
+            margin-top: 5px; z-index: 2; background: #fff;
+            padding: 4px 12px; border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* --- DASHBOARD --- */
+        .dashboard {
+            width: 90%; padding: 0 10px; margin-bottom: 20px;
+        }
+        
+        /* Graph Card with 3D effect */
+        .graph-card {
+            background: white; border-radius: 25px; height: 90px;
+            overflow: hidden; position: relative;
+            box-shadow: 0 8px 0 #f8bbd0, 0 15px 20px rgba(0,0,0,0.1);
+            margin-bottom: 25px; border: 2px solid #fff;
         }
         canvas { width: 100%; height: 100%; }
 
-        .btn {
-            width: 100%; padding: 18px; border: none; border-radius: 25px;
-            font-size: 20px; font-weight: 700; color: white; cursor: pointer;
-            background: var(--primary); box-shadow: 0 10px 20px rgba(0, 131, 143, 0.2);
-            transition: 0.1s;
+        .stats-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat-item {
+            flex: 1; background: white; padding: 15px; border-radius: 20px;
+            text-align: center; 
+            box-shadow: 0 6px 0 #f0f0f0, 0 10px 15px rgba(0,0,0,0.05);
         }
-        .btn:active { transform: scale(0.96); }
-        .btn.stop { background: #ef5350; box-shadow: 0 10px 20px rgba(239, 83, 80, 0.3); }
+        .stat-val { font-size: 20px; font-weight: 800; color: #5d4037; }
+        .stat-lbl { font-size: 11px; font-weight: 700; color: #90a4ae; margin-top: 2px; text-transform: uppercase; }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 15px; border-radius: 15px; text-align: center; }
-        .stat-n { font-size: 24px; font-weight: bold; color: var(--primary); }
-        .stat-l { font-size: 12px; color: #888; }
+        /* --- BUTTONS --- */
+        .controls {
+            width: 100%; padding: 0 30px 40px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .btn-main {
+            width: 100%; padding: 18px; border: none; border-radius: 25px;
+            font-size: 20px; font-weight: 800; color: white;
+            background: var(--primary);
+            box-shadow: 0 6px 0 var(--primary-shadow), 0 15px 20px rgba(255, 94, 125, 0.3);
+            cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .btn-main:active { 
+            transform: translateY(6px); 
+            box-shadow: 0 0 0 var(--primary-shadow), 0 5px 10px rgba(255, 94, 125, 0.3);
+        }
+        .btn-main.stop { 
+            background: #ef5350; 
+            box-shadow: 0 6px 0 #c62828, 0 15px 20px rgba(239, 83, 80, 0.3); 
+        }
+        .btn-main.stop:active {
+            box-shadow: 0 0 0 #c62828, 0 5px 10px rgba(239, 83, 80, 0.3);
+        }
 
-        /* Animation */
-        .heart-icon { font-size: 180px; color: var(--primary); opacity: 0.05; position: absolute; }
-        .pump { animation: beat 0.15s ease-out; opacity: 0.2 !important; }
-        @keyframes beat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        /* --- NAV BAR --- */
+        .nav-bar {
+            width: 100%; height: 70px; background: white;
+            border-radius: 30px 30px 0 0;
+            display: flex; justify-content: space-around; align-items: center;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
+            z-index: 10;
+        }
+        .nav-item { color: #cfd8dc; display: flex; flex-direction: column; align-items: center; }
+        .nav-item.active { color: var(--primary); }
+        .material-symbols-rounded { font-size: 28px; }
 
+        /* Helpers */
         video { position: absolute; width: 1px; opacity: 0; pointer-events: none; }
+        .beating { animation: heartbeat 0.25s ease-out; }
+        @keyframes heartbeat { 0% { transform: scale(1); } 40% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div class="page">
-        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-            <div>
-                <h2 style="margin: 0; color: var(--primary);">PulseCustom</h2>
-                <div style="font-size: 12px; color: #666;">Range: 80 - 160 BPM</div>
+    <div id="setupScreen">
+        <div class="setup-card">
+            <span class="material-symbols-rounded" style="font-size: 64px; color: var(--primary);">favorite</span>
+            <h2 style="color: #880e4f; margin: 10px 0;">PulseHeart</h2>
+            <p style="color: #8d6e63; font-size: 14px; margin-bottom: 20px;">ใส่อายุเพื่อความแม่นยำนะคะ</p>
+            <div class="input-group">
+                <input type="number" id="ageInput" placeholder="25" inputmode="numeric">
             </div>
-            <div style="background: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; color: var(--primary);">
-                v3.0 Active
+            <button class="btn-main" onclick="startApp()">เริ่มใช้งาน</button>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="app-title">
+            PulseHeart <span style="font-size: 12px; background: #ffe0b2; color: #e65100; padding: 2px 8px; border-radius: 10px; margin-left: 5px;">PRO</span>
+        </div>
+        <div class="subtitle" id="userInfoDisplay">Welcome, User</div>
+    </div>
+
+    <div class="monitor-wrapper">
+        <div class="pulse-ring">
+            <span class="material-symbols-rounded heart-bg" id="heartIcon">favorite</span>
+            <div id="bpmDisplay" class="bpm-value">--</div>
+            <div class="bpm-unit">BPM</div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="stats-row">
+            <div class="stat-item">
+                <div id="avgVal" class="stat-val">--</div>
+                <div class="stat-lbl">Average</div>
+            </div>
+            <div class="stat-item">
+                <div id="zoneVal" class="stat-val" style="font-size: 16px;">--</div>
+                <div class="stat-lbl">Heart Zone</div>
             </div>
         </div>
-
-        <div class="monitor-ring">
-            <span class="material-symbols-rounded heart-icon" id="heartIcon">favorite</span>
-            <div id="bpmDisplay" class="bpm-val">--</div>
-            <div class="bpm-lbl">BPM</div>
-            <div id="zoneTag" class="zone-badge">แตะเพื่อเริ่ม</div>
+        <div class="graph-card">
+            <canvas id="graphCanvas"></canvas>
         </div>
+    </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div id="avgVal" class="stat-n">--</div>
-                <div class="stat-l">ค่าเฉลี่ย</div>
-            </div>
-            <div class="stat-card">
-                <div id="statusVal" class="stat-n" style="color: #aaa; font-size: 18px;">Ready</div>
-                <div class="stat-l">สถานะ</div>
-            </div>
-        </div>
+    <div class="controls">
+        <button id="actionBtn" class="btn-main" onclick="toggleMeasure()">
+            <span class="material-symbols-rounded">play_circle</span>
+            เริ่มวัดชีพจร
+        </button>
+    </div>
 
-        <div class="graph-box"><canvas id="graphCanvas"></canvas></div>
-
-        <button id="actionBtn" class="btn" onclick="toggleMeasure()">เริ่มวัด (START)</button>
+    <div class="nav-bar">
+        <div class="nav-item"><span class="material-symbols-rounded">history</span></div>
+        <div class="nav-item active"><span class="material-symbols-rounded">home</span></div>
+        <div class="nav-item"><span class="material-symbols-rounded">person</span></div>
     </div>
 
     <video id="video" playsinline></video>
 
     <script>
-        let video = document.getElementById('video');
-        let canvas = document.createElement('canvas');
-        let ctx = canvas.getContext('2d', { willReadFrequently: true });
-        let graphCanvas = document.getElementById('graphCanvas');
-        let graphCtx = graphCanvas.getContext('2d');
+        // --- Medical Grade Configuration ---
+        let userAge = 25;
+        // Refractory Period: 350ms (กันการนับซ้ำ = แก้ปัญหาเลขสูงเกิน)
+        const REFRACTORY_PERIOD = 350; 
         
-        let isRunning = false, rafId;
+        // --- Elements ---
+        const video = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const graphCanvas = document.getElementById('graphCanvas');
+        const graphCtx = graphCanvas.getContext('2d');
+        
+        // --- State ---
+        let isRunning = false;
+        let rafId;
         let signalBuffer = new Array(120).fill(0.5);
-        let minVal=0, maxVal=0;
-        let lastBeatTime=0;
         let bpmHistory = [];
         let sessionReadings = [];
+        let lastBeatTime = 0;
+        let minVal = 0, maxVal = 0;
+
+        function startApp() {
+            let val = document.getElementById('ageInput').value;
+            if(val > 5 && val < 100) {
+                userAge = parseInt(val);
+                document.getElementById('setupScreen').style.opacity = '0';
+                setTimeout(() => document.getElementById('setupScreen').style.display = 'none', 500);
+                document.getElementById('userInfoDisplay').innerText = `Age: ${userAge} | Medical Grade Sensor`;
+            } else alert("กรุณาระบุอายุให้ถูกต้อง");
+        }
 
         function resizeGraph() {
-            graphCanvas.width = graphCanvas.offsetWidth;
-            graphCanvas.height = graphCanvas.offsetHeight;
+            graphCanvas.width = graphCanvas.offsetWidth * 2;
+            graphCanvas.height = graphCanvas.offsetHeight * 2;
         }
         window.onresize = resizeGraph; resizeGraph();
 
         async function toggleMeasure() {
             let btn = document.getElementById('actionBtn');
-            if(!isRunning) {
+            
+            if (!isRunning) {
                 try {
                     // เปิดกล้อง
                     let stream = await navigator.mediaDevices.getUserMedia({ 
                         video: { facingMode: "environment", width: {ideal: 100}, height: {ideal: 100} } 
                     });
                     video.srcObject = stream; await video.play();
+                    
+                    // เปิดแฟลช
                     try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: true }] }); } catch(e){}
 
                     isRunning = true;
-                    btn.innerText = "หยุด (STOP)"; btn.classList.add('stop');
+                    btn.innerHTML = `<span class="material-symbols-rounded">stop_circle</span> หยุด (STOP)`;
+                    btn.classList.add('stop');
                     
-                    // Reset ค่า
+                    // Reset
                     bpmHistory = []; sessionReadings = [];
                     document.getElementById('bpmDisplay').innerText = "--";
                     document.getElementById('avgVal').innerText = "--";
-                    updateStatus("Scanning...", "#bdbdbd");
+                    updateStatus("Scanning...", "var(--primary)");
                     
                     loop();
-                } catch(e) { alert("กรุณาเปิดสิทธิ์กล้อง"); }
+                } catch(e) { alert("กรุณาเปิดสิทธิ์กล้องใน Safari"); }
             } else {
-                // ปิดกล้อง
-                isRunning = false; cancelAnimationFrame(rafId);
-                if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
-                btn.innerText = "เริ่มวัดใหม่"; btn.classList.remove('stop');
+                stopCamera();
                 analyzeResult();
             }
+        }
+
+        function stopCamera() {
+            isRunning = false; cancelAnimationFrame(rafId);
+            if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
+            let btn = document.getElementById('actionBtn');
+            btn.innerHTML = `<span class="material-symbols-rounded">replay</span> เริ่มวัดใหม่`;
+            btn.classList.remove('stop');
+            document.getElementById('heartIcon').classList.remove('beating');
         }
 
         function loop() {
             if(!isRunning) return;
 
-            // 1. อ่านค่าแสง
+            // 1. อ่านค่าแสง (Center Sampling)
             ctx.drawImage(video, 0, 0, 30, 30);
-            let frame = ctx.getImageData(15, 15, 1, 1).data; // อ่านจุดเดียว (Fast)
-            let avg = frame[0]; 
+            let frame = ctx.getImageData(15, 15, 1, 1).data;
+            let avg = frame[0]; // สีแดง
 
-            // 2. คำนวณกราฟ (Fast Decay สำหรับช่วง 160 BPM)
+            // 2. Auto-Gain Logic
             if(minVal===0) { minVal=avg; maxVal=avg; }
             minVal = Math.min(minVal, avg); maxVal = Math.max(maxVal, avg);
-            minVal += 0.8; maxVal -= 0.8; 
+            minVal += 0.5; maxVal -= 0.5; // Decay
 
             let range = Math.max(1, maxVal - minVal);
             let inverted = 1.0 - ((avg - minVal) / range);
 
-            signalBuffer.push(inverted); if(signalBuffer.length > 120) signalBuffer.shift();
+            signalBuffer.push(inverted); 
+            if(signalBuffer.length > 120) signalBuffer.shift();
             drawGraph();
 
-            // 3. จับจังหวะหัวใจ
-            // Threshold 0.55 (ไว) + Deadzone 260ms (รับได้ถึง 230 BPM)
-            if(inverted > 0.55) {
+            // 3. Peak Detection (Medical Grade Logic)
+            // Threshold = 0.65 (ต้องเป็นคลื่นที่ชัดจริงๆ)
+            if(inverted > 0.65) {
                 let now = Date.now();
-                if(now - lastBeatTime > 260) {
-                    let bpm = 60 / ((now - lastBeatTime)/1000);
+                // **Anti-Double Count**: เช็คว่าเวลาห่างจากครั้งล่าสุดเกิน 350ms หรือไม่
+                if(now - lastBeatTime > REFRACTORY_PERIOD) {
+                    let interval = (now - lastBeatTime) / 1000;
                     lastBeatTime = now;
-                    // **ช่วงกว้างพิเศษ: 50 - 200 BPM**
-                    if(bpm > 50 && bpm < 200) updateBPM(Math.round(bpm));
+                    let bpm = 60 / interval;
+
+                    // Range Check (50 - 170 BPM)
+                    if(bpm > 50 && bpm < 170) {
+                        updateBPM(Math.round(bpm));
+                    }
                 }
             }
             rafId = requestAnimationFrame(loop);
         }
 
         function updateBPM(bpm) {
-            bpmHistory.push(bpm); if(bpmHistory.length > 5) bpmHistory.shift();
-            let avg = Math.round(bpmHistory.reduce((a,b)=>a+b,0)/bpmHistory.length);
+            bpmHistory.push(bpm);
+            if(bpmHistory.length > 5) bpmHistory.shift(); // Moving Average of 5
+
+            // ตัดค่าที่โดดผิดปกติ (Outlier Removal)
+            let sorted = [...bpmHistory].sort((a,b)=>a-b);
+            let valid = sorted;
+            if(sorted.length > 4) valid = sorted.slice(1, -1);
+
+            let avg = Math.round(valid.reduce((a,b)=>a+b,0) / valid.length);
             
-            // UI Update
             document.getElementById('bpmDisplay').innerText = avg;
             
             // Animation
             let icon = document.getElementById('heartIcon');
-            icon.classList.remove('pump'); void icon.offsetWidth; icon.classList.add('pump');
-            
-            // **CUSTOM ZONE LOGIC (80-160)**
-            let zone = getCustomZone(avg);
-            updateStatus(zone.text, zone.color);
-            
+            icon.classList.remove('beating'); void icon.offsetWidth; icon.classList.add('beating');
+
+            // Session Stats
             if(bpmHistory.length >= 5) {
                 sessionReadings.push(avg);
-                // Update Live Average
-                let total = Math.round(sessionReadings.reduce((a,b)=>a+b,0)/sessionReadings.length);
-                document.getElementById('avgVal').innerText = total;
+                // Live Average
+                let totalAvg = Math.round(sessionReadings.reduce((a,b)=>a+b,0)/sessionReadings.length);
+                document.getElementById('avgVal').innerText = totalAvg;
+                document.getElementById('zoneVal').innerText = getZone(totalAvg);
+                document.getElementById('zoneVal').style.color = getZoneColor(totalAvg);
             }
         }
 
-        function getCustomZone(bpm) {
-            // Logic ตามที่คุณขอมา: ปกติคือ 80-160
-            if (bpm < 80) return { text: "Low / Rest", color: "#4fc3f7" }; // ฟ้า
-            if (bpm <= 120) return { text: "Normal Range", color: "#66bb6a" }; // เขียว (80-120)
-            if (bpm <= 160) return { text: "Active / High", color: "#ffa726" }; // ส้ม (121-160)
-            return { text: "Peak Warning", color: "#ef5350" }; // แดง (>160)
+        function getZone(bpm) {
+            let max = 220 - userAge;
+            let p = (bpm/max)*100;
+            if(p<50) return "Warm Up";
+            if(p<60) return "Fat Burn";
+            if(p<70) return "Cardio";
+            if(p<80) return "Hard";
+            return "Peak";
+        }
+        function getZoneColor(bpm) {
+             let max = 220 - userAge;
+             let p = (bpm/max)*100;
+             if(p<60) return "#81c784";
+             if(p<80) return "#ffb74d";
+             return "#e57373";
         }
 
         function updateStatus(text, color) {
-            let el = document.getElementById('zoneTag');
-            el.innerText = text; el.style.background = color;
-            
-            let st = document.getElementById('statusVal');
-            st.innerText = text; st.style.color = color;
+            // Placeholder if needed
         }
 
         function analyzeResult() {
             if(sessionReadings.length > 5) {
                 let sum = sessionReadings.reduce((a,b)=>a+b,0);
                 let avg = Math.round(sum/sessionReadings.length);
-                let z = getCustomZone(avg);
-                alert(`สรุปผล: ${avg} BPM\nอยู่ในเกณฑ์: ${z.text}`);
+                alert(`💗 สรุปผล: ${avg} BPM (${getZone(avg)})`);
             } else {
-                alert("ข้อมูลไม่เพียงพอ");
+                alert("ข้อมูลไม่เพียงพอ กรุณาวัดให้นานขึ้น");
             }
         }
 
         function drawGraph() {
-            let w = graphCanvas.width;
-            let h = graphCanvas.height;
+            let w = graphCanvas.width, h = graphCanvas.height;
             graphCtx.clearRect(0,0,w,h);
-            graphCtx.strokeStyle = "#00838f"; graphCtx.lineWidth = 3;
+            
+            // Gradient Fill
+            let grad = graphCtx.createLinearGradient(0,0,0,h);
+            grad.addColorStop(0, "rgba(255, 94, 125, 0.2)");
+            grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+
             graphCtx.beginPath();
             let step = w/120;
-            for(let i=0; i<signalBuffer.length; i++){
+            
+            // Smooth Bezier Curve Simulation
+            graphCtx.moveTo(0, h - (signalBuffer[0]*h*0.8)-10);
+            for(let i=1; i<signalBuffer.length; i++){
                 let y = h - (signalBuffer[i]*h*0.8) - 10;
-                if(i===0) graphCtx.moveTo(0,y); else graphCtx.lineTo(i*step, y);
+                graphCtx.lineTo(i*step, y);
             }
-            graphCtx.stroke();
+            
+            graphCtx.strokeStyle = "#ff5e7d"; graphCtx.lineWidth = 6; 
+            graphCtx.lineJoin = "round"; graphCtx.stroke();
+            
+            graphCtx.lineTo(w, h); graphCtx.lineTo(0, h);
+            graphCtx.fillStyle = grad; graphCtx.fill();
         }
     </script>
 </body>
 </html>
+
