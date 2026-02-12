@@ -383,7 +383,7 @@
             document.getElementById('homeUser').innerText = `สวัสดี, ${userData.name}`;
             document.getElementById('profileName').value = userData.name;
             document.getElementById('profileAge').value = userData.age;
-            document.getElementById('profileMaxHR').value = (220 - userData.age) + " BPM";
+            document.getElementById('profileMaxHR').value = (120 - userData.age) + " BPM";
         }
 
         function renderHistory() {
@@ -409,7 +409,7 @@
         }
 
         function getZone(bpm) {
-            let max = 220 - userData.age;
+            let max = 120 - userData.age;
             let p = (bpm/max)*100;
             if(p<50) return {name:"Warm Up", color:"#4fc3f7"};
             if(p<60) return {name:"Fat Burn", color:"#81c784"};
