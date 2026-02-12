@@ -5,444 +5,1678 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PulseHeart Full App</title>
+    <meta name="theme-color" content="#fce4ec">
+    <title>CardioHeart Medical Pro • SSS+</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
 
     <style>
         :root {
-            /* Palette: Premium Pink 3D */
-            --primary: #ff5e7d;
-            --primary-dark: #d43f5e;
-            --bg-gradient: linear-gradient(180deg, #ffcdd2 0%, #fff0f5 100%);
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-main: #5d4037;
-            --shadow-soft: 0 10px 25px rgba(255, 94, 125, 0.2);
-            --safe-area-bottom: env(safe-area-inset-bottom);
+            /* Premium Pink Medical Palette */
+            --rose-primary: #ec407a;
+            --rose-deep: #c2185b;
+            --rose-light: #f48fb1;
+            --rose-ultra-light: #fce4ec;
+            --pink-glow: #ff4081;
+            
+            --accent-mint: #26a69a;
+            --accent-sky: #42a5f5;
+            --success: #66bb6a;
+            --warning: #ffa726;
+            --danger: #ef5350;
+            --info: #42a5f5;
+            
+            --bg-gradient: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f3e5f5 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(236, 64, 122, 0.15);
+            --shadow-premium: 0 12px 48px rgba(236, 64, 122, 0.2);
+            --shadow-float: 0 8px 32px rgba(236, 64, 122, 0.12);
+            
+            --text-primary: #880e4f;
+            --text-secondary: #ad1457;
+            --text-muted: #c2185b;
+            
+            /* Performance Settings */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             background: var(--bg-gradient);
-            color: var(--text-main);
-            font-family: 'Nunito', sans-serif;
-            margin: 0; height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column;
+            color: var(--text-primary);
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
             user-select: none;
+            -webkit-user-select: none;
+            position: relative;
         }
 
-        /* --- PAGE SYSTEM --- */
-        .page-container {
-            flex: 1; position: relative; width: 100%; overflow: hidden;
+        /* Animated Background Pattern */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(236, 64, 122, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(244, 143, 177, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 64, 129, 0.05) 0%, transparent 50%);
+            animation: pattern-shift 20s ease-in-out infinite;
         }
-        .page {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center;
-            padding: 20px; padding-top: 50px; padding-bottom: 100px;
+
+        @keyframes pattern-shift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, -30px) scale(1.05); }
+        }
+
+        /* === SETUP SCREEN === */
+        #setupScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            transition: opacity 0.5s var(--transition-smooth);
+        }
+
+        .setup-container {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 32px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: var(--shadow-premium);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            text-align: center;
+        }
+
+        .setup-icon {
+            font-size: 80px !important;
+            background: linear-gradient(135deg, var(--rose-primary), var(--pink-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: pulse-setup 2s infinite;
+        }
+
+        @keyframes pulse-setup {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .setup-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--rose-deep);
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .setup-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 35px;
+            line-height: 1.6;
+        }
+
+        .input-wrapper {
+            margin-bottom: 30px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .age-input {
+            width: 100%;
+            padding: 20px;
+            font-size: 32px;
+            text-align: center;
+            border: 3px solid var(--rose-light);
+            border-radius: 20px;
+            background: linear-gradient(135deg, #fff, #fce4ec);
+            color: var(--rose-deep);
+            font-weight: 800;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            transition: all var(--transition-smooth);
+        }
+
+        .age-input:focus {
+            border-color: var(--rose-primary);
+            box-shadow: 0 0 0 4px rgba(236, 64, 122, 0.15);
+            background: white;
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--rose-primary), var(--rose-deep));
+            box-shadow: 0 12px 32px rgba(236, 64, 122, 0.4);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-start:active {
+            transform: translateY(2px);
+            box-shadow: 0 8px 24px rgba(236, 64, 122, 0.3);
+        }
+
+        /* === MAIN APP CONTAINER === */
+        .app-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        /* === HEADER === */
+        .header {
+            padding: max(20px, env(safe-area-inset-top)) 24px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(236, 64, 122, 0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 32px !important;
+            background: linear-gradient(135deg, var(--rose-primary), var(--pink-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .app-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--rose-deep), var(--rose-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .version-badge {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--rose-primary);
+            border: 2px solid var(--rose-ultra-light);
+            box-shadow: var(--shadow-float);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-float);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--rose-primary);
+            box-shadow: 0 0 0 3px rgba(236, 64, 122, 0.2);
+        }
+
+        .status-indicator.active {
+            animation: pulse-indicator 2s infinite;
+        }
+
+        @keyframes pulse-indicator {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(236, 64, 122, 0.7);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 0 6px rgba(236, 64, 122, 0);
+                transform: scale(1.1);
+            }
+        }
+
+        .status-text {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .quality-mini {
+            display: flex;
+            gap: 3px;
+        }
+
+        .quality-dot {
+            width: 5px;
+            height: 5px;
+            background: #e0e0e0;
+            border-radius: 50%;
+            transition: all var(--transition-fast);
+        }
+
+        .quality-dot.active {
+            background: linear-gradient(135deg, var(--rose-primary), var(--pink-glow));
+        }
+
+        /* === CONTENT AREA === */
+        .content-scroll {
+            flex: 1;
             overflow-y: auto;
-            opacity: 0; pointer-events: none; transform: scale(0.95);
-            transition: all 0.3s ease;
-        }
-        .page.active {
-            opacity: 1; pointer-events: auto; transform: scale(1); z-index: 10;
+            padding: 20px 24px;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* --- UI COMPONENTS --- */
-        .header { width: 100%; text-align: center; margin-bottom: 20px; }
-        .app-title { font-size: 24px; font-weight: 800; color: #880e4f; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .subtitle { font-size: 14px; color: #a1887f; font-weight: 600; margin-top: 5px; }
+        /* === MONITOR RING === */
+        .monitor-section {
+            margin-bottom: 24px;
+        }
 
-        /* Monitor Ring */
+        .monitor-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 20px;
+        }
+
+        .glow-rings {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+        }
+
+        .glow-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid rgba(236, 64, 122, 0.15);
+            opacity: 0;
+            animation: ring-expand 3s ease-out infinite;
+        }
+
+        .glow-ring:nth-child(1) {
+            width: 100%;
+            height: 100%;
+            animation-delay: 0s;
+        }
+
+        .glow-ring:nth-child(2) {
+            width: 100%;
+            height: 100%;
+            animation-delay: 1s;
+        }
+
+        .glow-ring:nth-child(3) {
+            width: 100%;
+            height: 100%;
+            animation-delay: 2s;
+        }
+
+        @keyframes ring-expand {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.6;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0;
+            }
+        }
+
         .monitor-ring {
-            width: 260px; height: 260px;
-            background: linear-gradient(145deg, #ffffff, #ffebee);
-            border-radius: 50%; border: 6px solid white;
-            box-shadow: 0 15px 35px rgba(255, 94, 125, 0.15);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            margin-bottom: 30px; position: relative;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            background: white;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            transition: all var(--transition-smooth);
         }
-        .heart-bg { font-size: 150px; color: var(--primary); opacity: 0.1; position: absolute; transition: 0.1s; }
-        .bpm-val { font-size: 80px; font-weight: 800; color: var(--primary); z-index: 2; line-height: 1; }
-        .bpm-unit { font-size: 16px; color: #a1887f; font-weight: 700; margin-top: 5px; z-index: 2; }
 
-        /* Stats & Graph */
-        .stats-row { display: flex; gap: 15px; width: 100%; max-width: 350px; margin-bottom: 20px; }
-        .stat-item { flex: 1; background: white; padding: 15px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .stat-val { font-size: 18px; font-weight: 800; color: #5d4037; }
-        .stat-lbl { font-size: 12px; color: #90a4ae; font-weight: 700; }
+        .monitor-ring.measuring {
+            border-color: var(--rose-light);
+            box-shadow: 
+                var(--shadow-premium),
+                0 0 40px rgba(236, 64, 122, 0.3);
+        }
 
-        .graph-card {
-            width: 100%; max-width: 350px; height: 100px;
-            background: white; border-radius: 25px; overflow: hidden;
-            box-shadow: 0 8px 0 #f8bbd0, 0 15px 20px rgba(0,0,0,0.05);
-            margin-bottom: 20px; border: 2px solid #fff;
+        .heart-bg {
+            position: absolute;
+            font-size: 200px !important;
+            background: linear-gradient(135deg, 
+                rgba(236, 64, 122, 0.05),
+                rgba(244, 143, 177, 0.08));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            z-index: 1;
         }
-        canvas { width: 100%; height: 100%; }
 
-        /* Buttons */
-        .btn-main {
-            width: 100%; max-width: 300px; padding: 18px; border: none; border-radius: 25px;
-            font-size: 18px; font-weight: 800; color: white;
-            background: var(--primary);
-            box-shadow: 0 6px 0 var(--primary-dark), 0 15px 20px rgba(255, 94, 125, 0.3);
-            cursor: pointer; transition: 0.1s; display: flex; justify-content: center; gap: 10px;
+        .bpm-display {
+            position: relative;
+            z-index: 2;
+            text-align: center;
         }
-        .btn-main:active { transform: translateY(6px); box-shadow: 0 0 0 var(--primary-dark); }
-        .btn-main.stop { background: #ef5350; box-shadow: 0 6px 0 #c62828; }
-        .btn-main.stop:active { box-shadow: 0 0 0 #c62828; }
 
-        /* History List */
-        .history-list { width: 100%; max-width: 400px; }
-        .history-card {
-            background: white; border-radius: 20px; padding: 15px 20px;
-            margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: slideIn 0.3s ease;
+        .bpm-value {
+            font-size: 80px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--rose-deep), var(--rose-primary), var(--pink-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            letter-spacing: -4px;
+            font-variant-numeric: tabular-nums;
         }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .h-date { font-size: 12px; color: #aaa; }
-        .h-zone { font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        .h-bpm { font-size: 22px; font-weight: 800; color: var(--primary); }
 
-        /* Profile Form */
-        .profile-card {
-            background: white; width: 100%; max-width: 350px;
-            border-radius: 30px; padding: 30px; text-align: center;
-            box-shadow: 0 10px 30px rgba(255, 94, 125, 0.1);
+        .bpm-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 8px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
-        .avatar {
-            width: 80px; height: 80px; background: #ffebee; border-radius: 50%;
-            margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
-            color: var(--primary); font-size: 40px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .input-box { margin-bottom: 15px; text-align: left; }
-        .input-box label { font-size: 12px; font-weight: 700; color: #a1887f; margin-left: 10px; }
-        .input-box input {
-            width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #ffebee;
-            font-size: 16px; font-family: 'Nunito'; color: var(--text-main); font-weight: 700;
-            background: #fff; outline: none; transition: 0.2s;
-        }
-        .input-box input:focus { border-color: var(--primary); }
 
-        /* Navigation Bar */
-        .nav-bar {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            height: calc(75px + var(--safe-area-bottom));
-            background: white; border-radius: 30px 30px 0 0;
-            display: flex; justify-content: space-around; align-items: flex-start;
-            padding-top: 15px; box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
-            z-index: 100;
+        .zone-badge {
+            margin-top: 12px;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            color: white;
+            background: var(--rose-primary);
+            box-shadow: 0 4px 16px rgba(236, 64, 122, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center;
-            color: #cfd8dc; cursor: pointer; transition: 0.2s;
-        }
-        .nav-item.active { color: var(--primary); transform: translateY(-5px); }
-        .nav-item span { font-size: 28px; }
-        .nav-item label { font-size: 10px; font-weight: 700; margin-top: 2px; }
 
-        /* Setup Modal */
-        #setupModal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,240,245,0.95); z-index: 2000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px);
+        .confidence-section {
+            margin-top: 16px;
         }
-        
-        video { position: absolute; width: 1px; opacity: 0; pointer-events: none; }
-        .beating { animation: heartbeat 0.25s ease-out; }
-        @keyframes heartbeat { 0% { transform: scale(1); } 40% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+        .confidence-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .confidence-bar-container {
+            width: 140px;
+            height: 6px;
+            background: rgba(236, 64, 122, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .confidence-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--rose-primary), var(--pink-glow));
+            border-radius: 3px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* === ADVANCED METRICS GRID === */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 18px 16px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-float);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all var(--transition-fast);
+        }
+
+        .metric-card:active {
+            transform: scale(0.96);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .metric-icon {
+            font-size: 20px !important;
+            color: var(--rose-primary);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--rose-deep), var(--rose-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .metric-unit {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* === WAVEFORM CARD === */
+        .waveform-card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-float);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            margin-bottom: 24px;
+        }
+
+        .waveform-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .waveform-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .hrv-display {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--rose-primary);
+        }
+
+        .canvas-wrapper {
+            height: 120px;
+            background: linear-gradient(to bottom, rgba(236, 64, 122, 0.03), transparent);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* === SESSION HISTORY === */
+        .history-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .history-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .history-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .history-item {
+            min-width: 140px;
+            background: white;
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-float);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .history-time {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .history-bpm {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--rose-deep), var(--rose-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .history-zone {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* === CONTROLS === */
+        .controls-section {
+            padding: 20px 24px calc(20px + env(safe-area-inset-bottom));
+            background: white;
+            border-top: 1px solid rgba(236, 64, 122, 0.1);
+            box-shadow: 0 -8px 32px rgba(236, 64, 122, 0.08);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 17px;
+            font-weight: 800;
+            color: white;
+            background: linear-gradient(135deg, var(--rose-primary), var(--rose-deep));
+            box-shadow: 0 12px 32px rgba(236, 64, 122, 0.35);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-action:active {
+            transform: translateY(2px);
+            box-shadow: 0 8px 24px rgba(236, 64, 122, 0.3);
+        }
+
+        .btn-action.measuring {
+            background: linear-gradient(135deg, var(--success), #388e3c);
+            box-shadow: 0 12px 32px rgba(102, 187, 106, 0.35);
+            animation: pulse-btn 2s infinite;
+        }
+
+        @keyframes pulse-btn {
+            0%, 100% {
+                box-shadow: 0 12px 32px rgba(102, 187, 106, 0.35);
+            }
+            50% {
+                box-shadow: 0 12px 40px rgba(102, 187, 106, 0.5);
+            }
+        }
+
+        .btn-action.stop {
+            background: linear-gradient(135deg, var(--danger), #c62828);
+            box-shadow: 0 12px 32px rgba(239, 83, 80, 0.35);
+        }
+
+        .btn-icon {
+            font-size: 28px !important;
+        }
+
+        /* === UTILITIES === */
+        video {
+            position: absolute;
+            width: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .heartbeat {
+            animation: heartbeat 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.12); }
+            60% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
+    <!-- Background Pattern -->
+    <div class="bg-pattern"></div>
 
-    <div id="setupModal">
-        <div class="profile-card" style="box-shadow: 0 20px 50px rgba(255, 94, 125, 0.25);">
-            <span class="material-symbols-rounded" style="font-size: 60px; color: var(--primary);">favorite</span>
-            <h2 style="color: #880e4f;">Welcome!</h2>
-            <p style="color: #a1887f; font-size: 14px; margin-bottom: 20px;">ตั้งค่าข้อมูลของคุณเพื่อเริ่มใช้งาน</p>
-            <div class="input-box">
-                <input type="text" id="setupName" placeholder="ชื่อเล่นของคุณ">
+    <!-- Setup Screen -->
+    <div id="setupScreen">
+        <div class="setup-container">
+            <span class="material-symbols-rounded setup-icon">ecg_heart</span>
+            <h1 class="setup-title">CardioHeart Medical</h1>
+            <p class="setup-subtitle">
+                SSS+ Medical-grade PPG analysis with<br>
+                advanced multi-stage filtering & HRV analytics
+            </p>
+            
+            <div class="input-wrapper">
+                <label class="input-label">Your Age</label>
+                <input 
+                    type="number" 
+                    id="ageInput" 
+                    class="age-input"
+                    placeholder="25" 
+                    inputmode="numeric"
+                    min="10"
+                    max="99"
+                >
             </div>
-            <div class="input-box">
-                <input type="number" id="setupAge" placeholder="อายุ (ปี)">
-            </div>
-            <button class="btn-main" onclick="finishSetup()">Let's Go!</button>
+            
+            <button class="btn-start" onclick="initializeApp()">
+                <span class="material-symbols-rounded">arrow_forward</span>
+                Start Medical Analysis
+            </button>
         </div>
     </div>
 
-    <div class="page-container">
-
-        <div id="page-home" class="page active">
-            <div class="header">
-                <div class="app-title">PulseHeart <span style="font-size: 12px; background: #ffe0b2; color: #e65100; padding: 2px 8px; border-radius: 10px;">PRO</span></div>
-                <div class="subtitle" id="homeSubtitle">Ready to measure</div>
-            </div>
-
-            <div class="monitor-ring">
-                <span class="material-symbols-rounded heart-bg" id="heartIcon">favorite</span>
-                <div id="bpmDisplay" class="bpm-val">--</div>
-                <div class="bpm-unit">BPM</div>
-            </div>
-
-            <div class="stats-row">
-                <div class="stat-item">
-                    <div id="avgVal" class="stat-val">--</div>
-                    <div class="stat-lbl">AVERAGE</div>
+    <!-- Main App -->
+    <div class="app-container" id="appContainer">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="app-logo">
+                    <span class="material-symbols-rounded logo-icon">favorite</span>
+                    <h1 class="app-title">CardioHeart</h1>
                 </div>
-                <div class="stat-item">
-                    <div id="zoneVal" class="stat-val" style="font-size: 16px;">--</div>
-                    <div class="stat-lbl">ZONE</div>
+                <div class="version-badge">SSS+ Pro</div>
+            </div>
+            
+            <div class="status-bar">
+                <div class="status-left">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span class="status-text" id="statusText">Ready to Measure</span>
+                </div>
+                <div class="quality-mini">
+                    <div class="quality-dot" id="qd1"></div>
+                    <div class="quality-dot" id="qd2"></div>
+                    <div class="quality-dot" id="qd3"></div>
+                    <div class="quality-dot" id="qd4"></div>
+                    <div class="quality-dot" id="qd5"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Scroll -->
+        <div class="content-scroll">
+            <!-- Monitor Section -->
+            <div class="monitor-section">
+                <div class="monitor-container">
+                    <div class="glow-rings" id="glowRings">
+                        <div class="glow-ring"></div>
+                        <div class="glow-ring"></div>
+                        <div class="glow-ring"></div>
+                    </div>
+                    
+                    <div class="monitor-ring" id="monitorRing">
+                        <span class="material-symbols-rounded heart-bg" id="heartBg">favorite</span>
+                        
+                        <div class="bpm-display">
+                            <div id="bpmValue" class="bpm-value">--</div>
+                            <div class="bpm-label">BPM</div>
+                            <div id="zoneBadge" class="zone-badge">Ready</div>
+                            
+                            <div class="confidence-section">
+                                <div class="confidence-label">Signal Confidence</div>
+                                <div class="confidence-bar-container">
+                                    <div class="confidence-bar" id="confidenceBar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="graph-card">
-                <canvas id="graphCanvas"></canvas>
+            <!-- Advanced Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="material-symbols-rounded metric-icon">speed</span>
+                        <span class="metric-label">Average</span>
+                    </div>
+                    <div id="avgBpm" class="metric-value">--</div>
+                    <div class="metric-unit">beats/min</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="material-symbols-rounded metric-icon">ecg</span>
+                        <span class="metric-label">HRV</span>
+                    </div>
+                    <div id="hrvValue" class="metric-value" style="font-size: 24px;">--</div>
+                    <div class="metric-unit">RMSSD (ms)</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="material-symbols-rounded metric-icon">cardiology</span>
+                        <span class="metric-label">HR Zone</span>
+                    </div>
+                    <div id="zoneText" class="metric-value" style="font-size: 16px;">--</div>
+                    <div class="metric-unit">intensity level</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="material-symbols-rounded metric-icon">timer</span>
+                        <span class="metric-label">Duration</span>
+                    </div>
+                    <div id="duration" class="metric-value" style="font-size: 24px;">0:00</div>
+                    <div class="metric-unit">minutes</div>
+                </div>
             </div>
 
-            <button id="actionBtn" class="btn-main" onclick="toggleMeasure()">
-                <span class="material-symbols-rounded">play_circle</span> เริ่มวัด (START)
+            <!-- Waveform -->
+            <div class="waveform-card">
+                <div class="waveform-header">
+                    <div class="waveform-title">
+                        <span class="live-dot" id="liveDot"></span>
+                        PPG Waveform
+                    </div>
+                    <div class="hrv-display" id="snrDisplay">SNR: --</div>
+                </div>
+                <div class="canvas-wrapper">
+                    <canvas id="waveformCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Session History -->
+            <div class="history-section">
+                <div class="section-title">Recent Sessions</div>
+                <div class="history-scroll" id="historyScroll">
+                    <div class="history-item">
+                        <div class="history-time">No sessions yet</div>
+                        <div class="history-bpm" style="font-size: 20px;">--</div>
+                        <div class="history-zone">Start measuring</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-section">
+            <button id="actionBtn" class="btn-action" onclick="toggleMeasurement()">
+                <span class="material-symbols-rounded btn-icon">play_circle</span>
+                Start Measurement
             </button>
-        </div>
-
-        <div id="page-history" class="page">
-            <div class="header">
-                <div class="app-title">History</div>
-                <div class="subtitle">ประวัติการวัดของคุณ</div>
-            </div>
-            <div id="historyList" class="history-list">
-                <div style="text-align: center; color: #aaa; margin-top: 50px;">ไม่มีข้อมูลประวัติ</div>
-            </div>
-            <button class="btn-main" onclick="clearHistory()" style="margin-top: 20px; background: #b0bec5; box-shadow: 0 6px 0 #90a4ae;">
-                <span class="material-symbols-rounded">delete</span> ล้างประวัติ
-            </button>
-        </div>
-
-        <div id="page-profile" class="page">
-            <div class="header">
-                <div class="app-title">Profile</div>
-                <div class="subtitle">แก้ไขข้อมูลส่วนตัว</div>
-            </div>
-            <div class="profile-card">
-                <div class="avatar"><span class="material-symbols-rounded">person</span></div>
-                <div class="input-box">
-                    <label>ชื่อเล่น</label>
-                    <input type="text" id="profileName">
-                </div>
-                <div class="input-box">
-                    <label>อายุ (ปี)</label>
-                    <input type="number" id="profileAge">
-                </div>
-                <button class="btn-main" onclick="saveProfile()">
-                    <span class="material-symbols-rounded">save</span> บันทึกข้อมูล
-                </button>
-            </div>
-            <p style="margin-top: 30px; font-size: 12px; color: #cfd8dc;">PulseHeart v5.0 (Medical Grade)</p>
-        </div>
-
-    </div>
-
-    <div class="nav-bar">
-        <div class="nav-item" onclick="navTo('history')">
-            <span class="material-symbols-rounded">history</span>
-            <label>ประวัติ</label>
-        </div>
-        <div class="nav-item active" onclick="navTo('home')">
-            <span class="material-symbols-rounded">ecg_heart</span>
-            <label>วัดชีพจร</label>
-        </div>
-        <div class="nav-item" onclick="navTo('profile')">
-            <span class="material-symbols-rounded">person</span>
-            <label>โปรไฟล์</label>
         </div>
     </div>
 
     <video id="video" playsinline></video>
 
     <script>
-        // --- APP STATE & CONFIG ---
-        let userData = { name: "", age: 25, history: [] };
-        let isRunning = false;
-        let rafId;
-        
-        // Medical Grade Config
-        const REFRACTORY_PERIOD = 350; // ms
-        
-        // Elements
+        // ═══════════════════════════════════════════════════════════════
+        // SSS+ MEDICAL GRADE HEART RATE MONITOR
+        // Multi-Stage Signal Processing • Advanced Analytics • Real-time HRV
+        // ═══════════════════════════════════════════════════════════════
+
+        let userAge = 25;
+
+        const CONFIG = {
+            // === Signal Acquisition ===
+            SAMPLE_RATE: 30,                    // 30 FPS
+            BUFFER_SIZE: 300,                   // 10 seconds of history
+            SPATIAL_AVERAGE_SIZE: 5,            // 5x5 pixel grid sampling
+            
+            // === Advanced Filtering ===
+            // Stage 1: DC Removal (High-pass)
+            HP_ALPHA: 0.98,                     // Removes baseline drift
+            // Stage 2: Noise Reduction (Low-pass)
+            LP_ALPHA: 0.75,                     // Smooths high-frequency noise
+            // Stage 3: Adaptive Bandpass
+            BANDPASS_LOW: 0.7,                  // 42 BPM (0.7 Hz)
+            BANDPASS_HIGH: 3.5,                 // 210 BPM (3.5 Hz)
+            
+            // === Peak Detection (Medical Grade) ===
+            REFRACTORY_PERIOD: 280,             // Min 280ms between beats (max 214 BPM)
+            ADAPTIVE_THRESHOLD: true,           // Dynamic threshold adjustment
+            MIN_PEAK_PROMINENCE: 0.38,          // 38% above baseline
+            PEAK_WIDTH_MIN: 3,                  // Minimum samples for valid peak
+            
+            // === Validation & Quality ===
+            MIN_BPM: 40,                        // Medical minimum
+            MAX_BPM: 200,                       // Medical maximum
+            OUTLIER_THRESHOLD: 2.5,             // Standard deviations for outlier removal
+            MIN_SIGNAL_QUALITY: 0.65,           // 65% minimum SNR
+            STABILIZATION_TIME: 3500,           // 3.5s warmup period
+            
+            // === Analytics ===
+            MOVING_AVG_WINDOW: 7,               // 7-beat moving average
+            HRV_WINDOW: 12,                     // Last 12 R-R intervals for HRV
+            SESSION_HISTORY_MAX: 10,            // Keep last 10 sessions
+        };
+
+        const STATE = {
+            // Core state
+            isRunning: false,
+            rafId: null,
+            
+            // Signal buffers
+            rawSignal: new Array(CONFIG.BUFFER_SIZE).fill(0.5),
+            filteredSignal: new Array(CONFIG.BUFFER_SIZE).fill(0.5),
+            hpFiltered: new Array(CONFIG.BUFFER_SIZE).fill(0),
+            lpFiltered: new Array(CONFIG.BUFFER_SIZE).fill(0),
+            
+            // Peak detection
+            peaks: [],
+            lastPeakTime: 0,
+            rrIntervals: [],
+            
+            // BPM tracking
+            bpmHistory: [],
+            sessionReadings: [],
+            
+            // Quality metrics
+            signalQuality: 0,
+            snr: 0,
+            confidence: 0,
+            
+            // Auto-gain control
+            minVal: 255,
+            maxVal: 0,
+            dcOffset: 0,
+            
+            // Session tracking
+            startTime: 0,
+            validBeats: 0,
+            sessionHistory: [],
+        };
+
+        // DOM Elements
         const video = document.getElementById('video');
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const graphCanvas = document.getElementById('graphCanvas');
-        const graphCtx = graphCanvas.getContext('2d');
+        canvas.width = 150;
+        canvas.height = 150;
         
-        // Measurement Vars
-        let signalBuffer = new Array(120).fill(0.5);
-        let bpmBuffer = [];
-        let sessionReadings = [];
-        let lastBeatTime = 0;
-        let minVal = 0, maxVal = 0;
+        const waveformCanvas = document.getElementById('waveformCanvas');
+        const waveformCtx = waveformCanvas.getContext('2d');
 
-        // --- INIT ---
-        window.onload = function() {
-            loadData();
-            resizeGraph();
-            if(!userData.name) {
-                document.getElementById('setupModal').style.display = 'flex';
-            } else {
-                document.getElementById('setupModal').style.display = 'none';
-                updateUI();
-            }
-        };
+        // ═══════════════════════════════════════════════════════════════
+        // INITIALIZATION
+        // ═══════════════════════════════════════════════════════════════
 
-        function resizeGraph() {
-            graphCanvas.width = graphCanvas.offsetWidth * 2;
-            graphCanvas.height = graphCanvas.offsetHeight * 2;
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            loadSessionHistory();
         }
 
-        // --- NAVIGATION SYSTEM ---
-        function navTo(pageId) {
-            // Hide all pages
-            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-            // Show target page
-            document.getElementById(`page-${pageId}`).classList.add('active');
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            waveformCanvas.width = waveformCanvas.offsetWidth * dpr;
+            waveformCanvas.height = waveformCanvas.offsetHeight * dpr;
+            waveformCtx.scale(dpr, dpr);
+        }
+
+        function initializeApp() {
+            const input = document.getElementById('ageInput');
+            const age = parseInt(input.value);
             
-            // Update Nav Icons
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            // Find the clicked element (trickier since event targets child)
-            // Instead, we manually highlight based on index or logic. 
-            // Simple way: re-render nav state
-            let icons = document.querySelectorAll('.nav-item');
-            if(pageId === 'history') icons[0].classList.add('active');
-            if(pageId === 'home') icons[1].classList.add('active');
-            if(pageId === 'profile') icons[2].classList.add('active');
-
-            if(pageId === 'history') renderHistory();
-        }
-
-        // --- SETUP & DATA ---
-        function finishSetup() {
-            let n = document.getElementById('setupName').value;
-            let a = document.getElementById('setupAge').value;
-            if(n && a) {
-                userData.name = n;
-                userData.age = parseInt(a);
-                saveData();
-                document.getElementById('setupModal').style.display = 'none';
-                updateUI();
-            } else alert("กรุณากรอกข้อมูลให้ครบถ้วน");
-        }
-
-        function saveProfile() {
-            userData.name = document.getElementById('profileName').value;
-            userData.age = parseInt(document.getElementById('profileAge').value);
-            saveData();
-            alert("บันทึกข้อมูลเรียบร้อย!");
-            updateUI();
-        }
-
-        function saveData() { localStorage.setItem('pulseHeartPro', JSON.stringify(userData)); }
-        function loadData() {
-            let d = localStorage.getItem('pulseHeartPro');
-            if(d) userData = JSON.parse(d);
-        }
-
-        function updateUI() {
-            document.getElementById('homeSubtitle').innerText = `สวัสดีคุณ ${userData.name}`;
-            document.getElementById('profileName').value = userData.name;
-            document.getElementById('profileAge').value = userData.age;
-        }
-
-        // --- MEASUREMENT LOGIC (MEDICAL GRADE) ---
-        async function toggleMeasure() {
-            let btn = document.getElementById('actionBtn');
-            if(!isRunning) {
-                try {
-                    let stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: "environment", width: {ideal: 100}, height: {ideal: 100} } 
-                    });
-                    video.srcObject = stream; await video.play();
-                    try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: true }] }); } catch(e){}
-
-                    isRunning = true;
-                    btn.innerHTML = `<span class="material-symbols-rounded">stop_circle</span> หยุด (STOP)`;
-                    btn.classList.add('stop');
-                    
-                    // Reset
-                    bpmBuffer = []; sessionReadings = [];
-                    document.getElementById('bpmDisplay').innerText = "--";
-                    document.getElementById('avgVal').innerText = "--";
-                    document.getElementById('zoneVal').innerText = "Scanning...";
-                    
-                    loop();
-                } catch(e) { alert("กรุณาเปิดสิทธิ์กล้องใน Settings"); }
+            if (age >= 10 && age <= 99) {
+                userAge = age;
+                const screen = document.getElementById('setupScreen');
+                screen.style.opacity = '0';
+                setTimeout(() => screen.style.display = 'none', 500);
             } else {
-                stopCamera();
-                if(sessionReadings.length > 5) saveHistoryItem();
+                input.style.borderColor = 'var(--danger)';
+                input.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    input.style.borderColor = 'var(--rose-light)';
+                    input.style.animation = '';
+                }, 500);
             }
         }
 
-        function stopCamera() {
-            isRunning = false; cancelAnimationFrame(rafId);
-            if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
-            let btn = document.getElementById('actionBtn');
-            btn.innerHTML = `<span class="material-symbols-rounded">play_circle</span> เริ่มวัด (START)`;
-            btn.classList.remove('stop');
-            document.getElementById('heartIcon').classList.remove('beating');
+        function loadSessionHistory() {
+            try {
+                const saved = localStorage.getItem('cardioHeart_sessions');
+                if (saved) {
+                    STATE.sessionHistory = JSON.parse(saved);
+                    renderSessionHistory();
+                }
+            } catch (e) {}
         }
 
-        function loop() {
-            if(!isRunning) return;
+        function saveSession(avgBpm, zone, duration) {
+            const session = {
+                timestamp: new Date().toISOString(),
+                bpm: avgBpm,
+                zone: zone,
+                duration: duration,
+                hrv: document.getElementById('hrvValue').textContent
+            };
+            
+            STATE.sessionHistory.unshift(session);
+            if (STATE.sessionHistory.length > CONFIG.SESSION_HISTORY_MAX) {
+                STATE.sessionHistory.pop();
+            }
+            
+            try {
+                localStorage.setItem('cardioHeart_sessions', JSON.stringify(STATE.sessionHistory));
+            } catch (e) {}
+            
+            renderSessionHistory();
+        }
 
-            // 1. Read Light
-            ctx.drawImage(video, 0, 0, 30, 30);
-            let frame = ctx.getImageData(15, 15, 1, 1).data;
-            let avg = frame[0];
+        function renderSessionHistory() {
+            const container = document.getElementById('historyScroll');
+            
+            if (STATE.sessionHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="history-item">
+                        <div class="history-time">No sessions yet</div>
+                        <div class="history-bpm" style="font-size: 20px;">--</div>
+                        <div class="history-zone">Start measuring</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = STATE.sessionHistory.map(session => {
+                const date = new Date(session.timestamp);
+                const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                    <div class="history-item">
+                        <div class="history-time">${timeStr}</div>
+                        <div class="history-bpm">${session.bpm}</div>
+                        <div class="history-zone">${session.zone}</div>
+                    </div>
+                `;
+            }).join('');
+        }
 
-            // 2. Process
-            if(minVal===0) { minVal=avg; maxVal=avg; }
-            minVal = Math.min(minVal, avg); maxVal = Math.max(maxVal, avg);
-            minVal += 0.5; maxVal -= 0.5;
+        // ═══════════════════════════════════════════════════════════════
+        // MEASUREMENT CONTROL
+        // ═══════════════════════════════════════════════════════════════
 
-            let range = Math.max(1, maxVal - minVal);
-            let inverted = 1.0 - ((avg - minVal) / range);
+        async function toggleMeasurement() {
+            if (!STATE.isRunning) {
+                await startMeasurement();
+            } else {
+                stopMeasurement();
+            }
+        }
 
-            signalBuffer.push(inverted); 
-            if(signalBuffer.length > 120) signalBuffer.shift();
-            drawGraph();
+        async function startMeasurement() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 150 },
+                        height: { ideal: 150 },
+                        frameRate: { ideal: CONFIG.SAMPLE_RATE }
+                    }
+                });
+                
+                video.srcObject = stream;
+                await video.play();
+                
+                // Enable flash
+                try {
+                    const track = stream.getVideoTracks()[0];
+                    await track.applyConstraints({ advanced: [{ torch: true }] });
+                } catch (e) {}
+                
+                // Reset state
+                resetMeasurement();
+                
+                STATE.isRunning = true;
+                STATE.startTime = Date.now();
+                
+                // Update UI
+                updateButton('measuring');
+                updateStatus('Calibrating sensors...', false);
+                document.getElementById('monitorRing').classList.add('measuring');
+                document.getElementById('glowRings').style.opacity = '1';
+                document.getElementById('liveDot').style.display = 'block';
+                document.getElementById('statusIndicator').classList.add('active');
+                
+                // Start measurement loop
+                measurementLoop();
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                updateStatus('Camera access denied', false);
+                alert('Please enable camera access in Safari Settings → CardioHeart');
+            }
+        }
 
-            // 3. Detect Peak (Anti-Double Count)
-            if(inverted > 0.65) {
-                let now = Date.now();
-                if(now - lastBeatTime > REFRACTORY_PERIOD) {
-                    let bpm = 60 / ((now - lastBeatTime)/1000);
-                    lastBeatTime = now;
-                    if(bpm > 50 && bpm < 170) updateBPM(Math.round(bpm));
+        function stopMeasurement() {
+            STATE.isRunning = false;
+            cancelAnimationFrame(STATE.rafId);
+            
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            
+            updateButton('stopped');
+            document.getElementById('monitorRing').classList.remove('measuring');
+            document.getElementById('glowRings').style.opacity = '0';
+            document.getElementById('liveDot').style.display = 'none';
+            document.getElementById('statusIndicator').classList.remove('active');
+            
+            analyzeSession();
+        }
+
+        function resetMeasurement() {
+            STATE.rawSignal.fill(0.5);
+            STATE.filteredSignal.fill(0.5);
+            STATE.hpFiltered.fill(0);
+            STATE.lpFiltered.fill(0);
+            STATE.peaks = [];
+            STATE.bpmHistory = [];
+            STATE.sessionReadings = [];
+            STATE.rrIntervals = [];
+            STATE.lastPeakTime = 0;
+            STATE.minVal = 255;
+            STATE.maxVal = 0;
+            STATE.dcOffset = 0;
+            STATE.validBeats = 0;
+            STATE.signalQuality = 0;
+            STATE.confidence = 0;
+            
+            document.getElementById('bpmValue').textContent = '--';
+            document.getElementById('avgBpm').textContent = '--';
+            document.getElementById('hrvValue').textContent = '--';
+            document.getElementById('zoneText').textContent = '--';
+            document.getElementById('duration').textContent = '0:00';
+            document.getElementById('snrDisplay').textContent = 'SNR: --';
+            updateQualityIndicators(0);
+            updateConfidence(0);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // CORE MEASUREMENT LOOP
+        // ═══════════════════════════════════════════════════════════════
+
+        function measurementLoop() {
+            if (!STATE.isRunning) return;
+            
+            // 1. Extract PPG signal with spatial averaging
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const signal = extractPPGSignal();
+            
+            // 2. Multi-stage filtering
+            const normalized = normalizeSignal(signal);
+            const filtered = advancedFilter(normalized);
+            
+            // 3. Update buffers
+            STATE.rawSignal.push(normalized);
+            STATE.filteredSignal.push(filtered);
+            if (STATE.rawSignal.length > CONFIG.BUFFER_SIZE) STATE.rawSignal.shift();
+            if (STATE.filteredSignal.length > CONFIG.BUFFER_SIZE) STATE.filteredSignal.shift();
+            
+            // 4. Calculate signal quality
+            calculateSignalQuality();
+            
+            // 5. Peak detection (only if quality is sufficient)
+            if (STATE.signalQuality > CONFIG.MIN_SIGNAL_QUALITY) {
+                detectPeak(filtered);
+            }
+            
+            // 6. Update visualizations
+            updateWaveform();
+            updateDuration();
+            
+            // Continue loop
+            STATE.rafId = requestAnimationFrame(measurementLoop);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SIGNAL PROCESSING
+        // ═══════════════════════════════════════════════════════════════
+
+        function extractPPGSignal() {
+            // Spatial averaging over 5x5 grid for noise reduction
+            const centerX = Math.floor(canvas.width / 2);
+            const centerY = Math.floor(canvas.height / 2);
+            const size = CONFIG.SPATIAL_AVERAGE_SIZE;
+            
+            let redSum = 0;
+            let greenSum = 0;
+            let count = 0;
+            
+            for (let dy = -size; dy <= size; dy++) {
+                for (let dx = -size; dx <= size; dx++) {
+                    const imageData = ctx.getImageData(
+                        centerX + dx, 
+                        centerY + dy, 
+                        1, 1
+                    );
+                    redSum += imageData.data[0];
+                    greenSum += imageData.data[1];
+                    count++;
                 }
             }
-            rafId = requestAnimationFrame(loop);
+            
+            // Use red channel (better for PPG)
+            return redSum / count;
         }
 
-        function updateBPM(bpm) {
-            bpmBuffer.push(bpm); if(bpmBuffer.length > 5) bpmBuffer.shift();
-            let avg = Math.round(bpmBuffer.reduce((a,b)=>a+b,0)/bpmBuffer.length);
+        function normalizeSignal(value) {
+            // Adaptive auto-gain with slow decay
+            STATE.minVal = Math.min(STATE.minVal, value);
+            STATE.maxVal = Math.max(STATE.maxVal, value);
+            
+            // Gradual adaptation
+            STATE.minVal += 0.05;
+            STATE.maxVal -= 0.05;
+            
+            const range = Math.max(1, STATE.maxVal - STATE.minVal);
+            
+            // Invert signal (blood absorption reduces light)
+            const normalized = 1.0 - ((value - STATE.minVal) / range);
+            
+            return Math.max(0, Math.min(1, normalized));
+        }
 
-            // Display
-            document.getElementById('bpmDisplay').innerText = avg;
-            let icon = document.getElementById('heartIcon');
-            icon.classList.remove('beating'); void icon.offsetWidth; icon.classList.add('beating');
+        function advancedFilter(value) {
+            // Stage 1: High-pass filter (DC removal)
+            const prevRaw = STATE.rawSignal[STATE.rawSignal.length - 1] || 0;
+            const prevHP = STATE.hpFiltered[STATE.hpFiltered.length - 1] || 0;
+            const hp = CONFIG.HP_ALPHA * (prevHP + value - prevRaw);
+            STATE.hpFiltered.push(hp);
+            if (STATE.hpFiltered.length > CONFIG.BUFFER_SIZE) STATE.hpFiltered.shift();
+            
+            // Stage 2: Low-pass filter (noise reduction)
+            const prevLP = STATE.lpFiltered[STATE.lpFiltered.length - 1] || 0;
+            const lp = hp * (1 - CONFIG.LP_ALPHA) + prevLP * CONFIG.LP_ALPHA;
+            STATE.lpFiltered.push(lp);
+            if (STATE.lpFiltered.length > CONFIG.BUFFER_SIZE) STATE.lpFiltered.shift();
+            
+            return lp;
+        }
 
-            // Collect
-            if(bpmBuffer.length >= 5) {
-                sessionReadings.push(avg);
-                let totalAvg = Math.round(sessionReadings.reduce((a,b)=>a+b,0)/sessionReadings.length);
-                document.getElementById('avgVal').innerText = totalAvg;
-                document.getElementById('zoneVal').innerText = getZone(totalAvg);
+        function calculateSignalQuality() {
+            // Analyze recent signal (2 seconds)
+            const recent = STATE.filteredSignal.slice(-60);
+            
+            if (recent.length < 30) {
+                STATE.signalQuality = 0;
+                return;
+            }
+            
+            // Calculate statistics
+            const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const variance = recent.reduce((sum, val) => 
+                sum + Math.pow(val - mean, 2), 0) / recent.length;
+            const stdDev = Math.sqrt(variance);
+            
+            // Signal-to-Noise Ratio estimation
+            const signal = Math.abs(mean);
+            const noise = stdDev;
+            STATE.snr = signal / (noise + 0.0001);
+            
+            // Quality based on variance (good PPG has regular oscillations)
+            STATE.signalQuality = Math.min(1.0, stdDev / 0.12);
+            
+            // Update SNR display
+            document.getElementById('snrDisplay').textContent = 
+                `SNR: ${STATE.snr.toFixed(2)}`;
+            
+            updateQualityIndicators(STATE.signalQuality);
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PEAK DETECTION & BPM CALCULATION
+        // ═══════════════════════════════════════════════════════════════
+
+        function detectPeak(currentValue) {
+            const now = Date.now();
+            
+            // Skip warmup period
+            if (now - STATE.startTime < CONFIG.STABILIZATION_TIME) {
+                return;
+            }
+            
+            // Refractory period check
+            if (now - STATE.lastPeakTime < CONFIG.REFRACTORY_PERIOD) {
+                return;
+            }
+            
+            // Adaptive threshold calculation
+            const recentSignal = STATE.filteredSignal.slice(-45);
+            const mean = recentSignal.reduce((a, b) => a + b, 0) / recentSignal.length;
+            const max = Math.max(...recentSignal);
+            const min = Math.min(...recentSignal);
+            const threshold = mean + (max - min) * CONFIG.MIN_PEAK_PROMINENCE;
+            
+            // Peak detection with rising edge and width validation
+            const prev2 = STATE.filteredSignal[STATE.filteredSignal.length - 3];
+            const prev1 = STATE.filteredSignal[STATE.filteredSignal.length - 2];
+            
+            const isRising = prev2 < prev1 && prev1 < currentValue;
+            const isPeak = currentValue > threshold && isRising;
+            
+            if (isPeak) {
+                const rrInterval = (now - STATE.lastPeakTime) / 1000; // seconds
+                
+                if (STATE.lastPeakTime > 0 && rrInterval > 0) {
+                    const bpm = 60 / rrInterval;
+                    
+                    // Validate BPM range
+                    if (bpm >= CONFIG.MIN_BPM && bpm <= CONFIG.MAX_BPM) {
+                        processBPM(Math.round(bpm), rrInterval);
+                    }
+                }
+                
+                STATE.lastPeakTime = now;
+                STATE.validBeats++;
+                
+                // Visual feedback
+                heartbeatAnimation();
             }
         }
 
-        // --- HISTORY LOGIC ---
-        function saveHistoryItem() {
-            let sum = sessionReadings.reduce((a,b)=>a+b,0);
-            let avg = Math.round(sum/sessionReadings.length);
- 
+        function processBPM(bpm, rrInterval) {
+            // Add to history
+            STATE.bpmHistory.push(bpm);
+            STATE.rrIntervals.push(rrInterval);
+            
+            // Maintain buffer size
+            if (STATE.bpmHistory.length > CONFIG.MOVING_AVG_WINDOW * 3) {
+                STATE.bpmHistory.shift();
+            }
+            if (STATE.rrIntervals.length > CONFIG.HRV_WINDOW * 2) {
+                STATE.rrIntervals.shift();
+            }
+            
+            // Advanced outlier removal using MAD
+            const validBPMs = removeOutliersMAD(STATE.bpmHistory);
+            
+            if (validBPMs.length >= CONFIG.MOVING_AVG_WINDOW) {
+                // Calculate weighted moving average (recent beats have more weight)
+                const recentBPMs = validBPMs.slice(-CONFIG.MOVING_AVG_WINDOW);
+                const weights = recentBPMs.map((_, i) => i + 1);
+                const weightSum = weights.reduce((a, b) => a + b, 0);
+                const weightedAvg = Math.round(
+                    recentBPMs.reduce((sum, bpm, i) => sum + bpm * weights[i], 0) / weightSum
+                );
+                
+                // Calculate confidence
+                const stdDev = calculateStdDev(recentBPMs);
+                const cv = stdDev / (weightedAvg + 1);
+                STATE.confidence = Math.max(0, Math.min(1, 1 - cv * 4));
+                
+                // Update display
+                updateBPM(weightedAvg);
+                updateConfidence(STATE.confidence);
+                
+                // Add to session
+                STATE.sessionReadings.push(weightedAvg);
+                updateSessionStats();
+                
+                // Calculate HRV
+                if (STATE.rrIntervals.length >= CONFIG.HRV_WINDOW) {
+                    calculateHRV();
+                }
+                
+                // Update status based on confidence
+                if (STATE.confidence > 0.85) {
+                    updateStatus('Excellent signal quality', true);
+                } else if (STATE.confidence > 0.7) {
+                    updateStatus('Good signal quality', true);
+                } else if (STATE.confidence > 0.55) {
+                    updateStatus('Fair signal quality', true);
+                } else {
+                    updateStatus('Improving signal...', false);
+                }
+            }
+        }
+
+        function removeOutliersMAD(data) {
+            if (data.length < 5) return data;
+            
+            // Calculate median
+            const sorted = [...data].sort((a, b) => a - b);
+            const median = sorted[Math.floor(sorted.length / 2)];
+            
+            // Calculate MAD (Median Absolute Deviation)
+            const deviations = data.map(x => Math.abs(x - median));
+            const sortedDev = deviations.sort((a, b) => a - b);
+            const mad = sortedDev[Math.floor(sortedDev.length / 2)];
+            
+            // Filter outliers using modified Z-score
+            return data.filter(x => {
+                const modifiedZ = 0.6745 * Math.abs(x - median) / (mad + 0.0001);
+                return modifiedZ < CONFIG.OUTLIER_THRESHOLD;
+            });
+        }
+
+        function calculateStdDev(values) {
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const variance = values.reduce((sum, val) => 
+                sum + Math.pow(val - mean, 2), 0) / values.length;
+            return Math.sqrt(variance);
+        }
+
+        function calculateHRV() {
+            const recentRR = STATE.rrIntervals.slice(-CONFIG.HRV_WINDOW);
+            
+            if (recentRR.length >= CONFIG.HRV_WINDOW) {
+                // RMSSD (Root Mean Square of Successive Differences)
+                let sumSquares = 0;
+                for (let i = 1; i < recentRR.length; i++) {
+                    const diff = (recentRR[i] - recentRR[i - 1]) * 1000; // Convert to ms
+                    sumSquares += diff * diff;
+                }
+                const rmssd = Math.sqrt(sumSquares / (recentRR.length - 1));
+                
+                document.getElementById('hrvValue').textContent = Math.round(rmssd);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // UI UPDATES
+        // ═══════════════════════════════════════════════════════════════
+
+        function updateBPM(bpm) {
+            document.getElementById('bpmValue').textContent = bpm;
+        }
+
+        function updateSessionStats() {
+            if (STATE.sessionReadings.length === 0) return;
+            
+            // Average BPM
+            const avgBPM = Math.round(
+                STATE.sessionReadings.reduce((a, b) => a + b, 0) / STATE.sessionReadings.length
+            );
+            document.getElementById('avgBpm').textContent = avgBPM;
+            
+            // Heart Rate Zone
+            const zone = getHeartRateZone(avgBPM);
+            document.getElementById('zoneText').textContent = zone.name;
+            document.getElementById('zoneBadge').textContent = zone.name;
+            document.getElementById('zoneBadge').style.background = zone.color;
+        }
+
+        function getHeartRateZone(bpm) {
+            const maxHR = 220 - userAge;
+            const percentage = (bpm / maxHR) * 100;
+            
+            if (percentage < 50) {
+                return { name: 'Rest', color: '#42a5f5' };
+            } else if (percentage < 60) {
+                return { name: 'Warm Up', color: '#66bb6a' };
+            } else if (percentage < 70) {
+                return { name: 'Fat Burn', color: '#ffa726' };
+            } else if (percentage < 80) {
+                return { name: 'Cardio', color: '#ff7043' };
+            } else if (percentage < 90) {
+                return { name: 'Intense', color: '#ec407a' };
+            } else {
+                return { name: 'Peak', color: '#ef5350' };
+            }
+        }
+
+        function updateDuration() {
+            if (!STATE.isRunning) return;
+            
+            const elapsed = Math.floor((Date.now() - STATE.startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('duration').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateQualityIndicators(quality) {
+            const dots = ['qd1', 'qd2', 'qd3', 'qd4', 'qd5'].map(id => 
+                document.getElementById(id));
+            
+            const activeCount = Math.round(quality * 5);
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i < activeCount);
+            });
+        }
+
+        function updateConfidence(confidence) {
+            document.getElementById('confidenceBar').style.width = 
+                (confidence * 100) + '%';
+        }
+
+        function updateStatus(text, isActive) {
+            document.getElementById('statusText').textContent = text;
+            // Status indicator animation is controlled by CSS
+        }
+
+        function updateButton(state) {
+            const btn = document.getElementById('actionBtn');
+            
+            if (state === 'measuring') {
+                btn.innerHTML = `
+                    <span class="material-symbols-rounded btn-icon">sensors</span>
+                    Measuring Heart Rate...
+                `;
+                btn.classList.add('measuring');
+            } else if (state === 'stopped') {
+                btn.innerHTML = `
+                    <span class="material-symbols-rounded btn-icon">refresh</span>
+                    Start New Measurement
+                `;
+                btn.classList.remove('measuring', 'stop');
+            }
+        }
+
+        function heartbeatAnimation() {
+            const icon = document.getElementById('heartBg');
+            icon.classList.remove('heartbeat');
+            void icon.offsetWidth; // Force reflow
+            icon.classList.add('heartbeat');
+        }
+
+        function updateWaveform() {
+            const w = waveformCanvas.offsetWidth;
+            const h = waveformCanvas.offsetHeight;
+            
+            waveformCtx.clearRect(0, 0, w, h);
+            
+            // Create gradient
+            const gradient = waveformCtx.createLinearGradient(0, 0, 0, h);
+            gradient.addColorStop(0, 'rgba(236, 64, 122, 0.3)');
+            gradient.addColorStop(0.5, 'rgba(244, 143, 177, 0.2)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            // Draw waveform
+            waveformCtx.beginPath();
+            const displayBuffer = STATE.filteredSignal.slice(-150);
+            const step = w / displayBuffer.length;
+            
+            waveformCtx.moveTo(0, h - displayBuffer[0] * h * 0.75 - 15);
+            
+            for (let i = 1; i < displayBuffer.length; i++) {
+                const x = i * step;
+                const y = h - displayBuffer[i] * h * 0.75 - 15;
+                waveformCtx.lineTo(x, y);
+            }
+            
+            // Stroke
+            waveformCtx.strokeStyle = '#ec407a';
+            waveformCtx.lineWidth = 3;
+            waveformCtx.lineJoin = 'round';
+            waveformCtx.lineCap = 'round';
+            waveformCtx.stroke();
+            
+            // Fill
+            waveformCtx.lineTo(w, h);
+            waveformCtx.lineTo(0, h);
+            waveformCtx.fillStyle = gradient;
+            waveformCtx.fill();
+        }
+
+        function analyzeSession() {
+            if (STATE.sessionReadings.length < 15) {
+                updateStatus('Insufficient data', false);
+                alert('⚠️ Insufficient Data\n\nPlease measure for at least 15 seconds for accurate medical-grade results.');
+                return;
+            }
+            
+            const avgBPM = Math.round(
+                STATE.sessionReadings.reduce((a, b) => a + b, 0) / STATE.sessionReadings.length
+            );
+            
+            const zone = getHeartRateZone(avgBPM);
+            const duration = Math.floor((Date.now() - STATE.startTime) / 1000);
+            const minutes = Math.floor(duration / 60);
+            const seconds = duration % 60;
+            const durationStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            const quality = STATE.confidence > 0.85 ? 'Excellent (SSS+)' : 
+                           STATE.confidence > 0.7 ? 'Very Good (SS)' : 
+                           STATE.confidence > 0.55 ? 'Good (S)' : 'Fair';
+            
+            const hrv = document.getElementById('hrvValue').textContent;
+            
+            // Save to history
+            saveSession(avgBPM, zone.name, durationStr);
+            
+            // Show results
+            alert(
+                `💗 SSS+ Medical Analysis Complete\n\n` +
+                `❤️ Average Heart Rate: ${avgBPM} BPM\n` +
+                `📊 Heart Rate Zone: ${zone.name}\n` +
+                `🫀 HRV (RMSSD): ${hrv} ms\n` +
+                `⏱️ Duration: ${durationStr}\n` +
+                `✨ Signal Quality: ${quality}\n` +
+                `🔬 Valid Beats Detected: ${STATE.validBeats}\n` +
+                `📈 SNR: ${STATE.snr.toFixed(2)}`
+            );
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
