@@ -5,279 +5,363 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PulseHeart Cute</title>
+    <title>PulseHeart Full App</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
 
     <style>
         :root {
-            /* Palette: Cute Pink 3D */
-            --primary: #ff5e7d;       /* ชมพูเข้ม (ปุ่ม/กราฟ) */
-            --primary-shadow: #d43f5e; /* เงาปุ่ม */
-            --bg-top: #ffcdd2;        /* พื้นหลังบน */
-            --bg-bottom: #fff0f5;     /* พื้นหลังล่าง */
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --text-main: #6d4c41;
+            /* Palette: Premium Pink 3D */
+            --primary: #ff5e7d;
+            --primary-dark: #d43f5e;
+            --bg-gradient: linear-gradient(180deg, #ffcdd2 0%, #fff0f5 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #5d4037;
             --shadow-soft: 0 10px 25px rgba(255, 94, 125, 0.2);
+            --safe-area-bottom: env(safe-area-inset-bottom);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            background: var(--bg-gradient);
             color: var(--text-main);
             font-family: 'Nunito', sans-serif;
             margin: 0; height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            display: flex; flex-direction: column;
             user-select: none;
         }
 
-        /* --- SETUP MODAL (หน้าแรก) --- */
-        #setupScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 240, 245, 0.98);
-            z-index: 1000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px);
+        /* --- PAGE SYSTEM --- */
+        .page-container {
+            flex: 1; position: relative; width: 100%; overflow: hidden;
         }
-        .setup-card {
-            background: white; padding: 40px 30px; border-radius: 40px;
-            text-align: center; width: 85%; max-width: 320px;
-            box-shadow: 0 20px 50px rgba(255, 94, 125, 0.25);
-            border: 4px solid #fff;
+        .page {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px; padding-top: 50px; padding-bottom: 100px;
+            overflow-y: auto;
+            opacity: 0; pointer-events: none; transform: scale(0.95);
+            transition: all 0.3s ease;
         }
-        .input-group input {
-            width: 100%; padding: 15px; font-size: 24px; text-align: center;
-            border: 2px solid #ffdae0; border-radius: 20px;
-            background: #fff; color: var(--primary); font-family: 'Nunito', sans-serif;
-            outline: none; margin: 20px 0; font-weight: 800;
+        .page.active {
+            opacity: 1; pointer-events: auto; transform: scale(1); z-index: 10;
         }
 
-        /* --- HEADER --- */
-        .header { 
-            margin-top: max(20px, env(safe-area-inset-top)); 
-            text-align: center; z-index: 2; width: 100%;
-        }
-        .app-title {
-            font-size: 22px; font-weight: 800; color: #880e4f;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            letter-spacing: 0.5px;
-        }
-        .subtitle { font-size: 13px; color: #a1887f; font-weight: 600; margin-top: 5px; }
+        /* --- UI COMPONENTS --- */
+        .header { width: 100%; text-align: center; margin-bottom: 20px; }
+        .app-title { font-size: 24px; font-weight: 800; color: #880e4f; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .subtitle { font-size: 14px; color: #a1887f; font-weight: 600; margin-top: 5px; }
 
-        /* --- MONITOR RING (3D Style) --- */
-        .monitor-wrapper {
-            position: relative; flex-grow: 1; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .pulse-ring {
-            width: 280px; height: 280px;
+        /* Monitor Ring */
+        .monitor-ring {
+            width: 260px; height: 260px;
             background: linear-gradient(145deg, #ffffff, #ffebee);
-            border-radius: 50%;
-            border: 6px solid white;
-            box-shadow: 
-                0 15px 35px rgba(255, 94, 125, 0.15),
-                inset 0 5px 15px rgba(255,255,255,1);
+            border-radius: 50%; border: 6px solid white;
+            box-shadow: 0 15px 35px rgba(255, 94, 125, 0.15);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            position: relative;
+            margin-bottom: 30px; position: relative;
         }
-        
-        .heart-bg {
-            position: absolute; font-size: 160px; color: var(--primary);
-            opacity: 0.1; transition: transform 0.1s;
-            filter: drop-shadow(0 5px 5px rgba(255,94,125,0.2));
-        }
+        .heart-bg { font-size: 150px; color: var(--primary); opacity: 0.1; position: absolute; transition: 0.1s; }
+        .bpm-val { font-size: 80px; font-weight: 800; color: var(--primary); z-index: 2; line-height: 1; }
+        .bpm-unit { font-size: 16px; color: #a1887f; font-weight: 700; margin-top: 5px; z-index: 2; }
 
-        .bpm-value {
-            font-size: 90px; font-weight: 800; line-height: 1;
-            color: var(--primary);
-            z-index: 2; letter-spacing: -2px;
-            text-shadow: 2px 2px 0px rgba(255,255,255,1);
-        }
-        .bpm-unit { 
-            font-size: 16px; font-weight: 700; color: #a1887f; 
-            margin-top: 5px; z-index: 2; background: #fff;
-            padding: 4px 12px; border-radius: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        /* Stats & Graph */
+        .stats-row { display: flex; gap: 15px; width: 100%; max-width: 350px; margin-bottom: 20px; }
+        .stat-item { flex: 1; background: white; padding: 15px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .stat-val { font-size: 18px; font-weight: 800; color: #5d4037; }
+        .stat-lbl { font-size: 12px; color: #90a4ae; font-weight: 700; }
 
-        /* --- DASHBOARD --- */
-        .dashboard {
-            width: 90%; padding: 0 10px; margin-bottom: 20px;
-        }
-        
-        /* Graph Card with 3D effect */
         .graph-card {
-            background: white; border-radius: 25px; height: 90px;
-            overflow: hidden; position: relative;
-            box-shadow: 0 8px 0 #f8bbd0, 0 15px 20px rgba(0,0,0,0.1);
-            margin-bottom: 25px; border: 2px solid #fff;
+            width: 100%; max-width: 350px; height: 100px;
+            background: white; border-radius: 25px; overflow: hidden;
+            box-shadow: 0 8px 0 #f8bbd0, 0 15px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px; border: 2px solid #fff;
         }
         canvas { width: 100%; height: 100%; }
 
-        .stats-row { display: flex; gap: 15px; margin-bottom: 20px; }
-        .stat-item {
-            flex: 1; background: white; padding: 15px; border-radius: 20px;
-            text-align: center; 
-            box-shadow: 0 6px 0 #f0f0f0, 0 10px 15px rgba(0,0,0,0.05);
-        }
-        .stat-val { font-size: 20px; font-weight: 800; color: #5d4037; }
-        .stat-lbl { font-size: 11px; font-weight: 700; color: #90a4ae; margin-top: 2px; text-transform: uppercase; }
-
-        /* --- BUTTONS --- */
-        .controls {
-            width: 100%; padding: 0 30px 40px;
-            display: flex; flex-direction: column; align-items: center;
-        }
+        /* Buttons */
         .btn-main {
-            width: 100%; padding: 18px; border: none; border-radius: 25px;
-            font-size: 20px; font-weight: 800; color: white;
+            width: 100%; max-width: 300px; padding: 18px; border: none; border-radius: 25px;
+            font-size: 18px; font-weight: 800; color: white;
             background: var(--primary);
-            box-shadow: 0 6px 0 var(--primary-shadow), 0 15px 20px rgba(255, 94, 125, 0.3);
-            cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
-            display: flex; justify-content: center; align-items: center; gap: 10px;
+            box-shadow: 0 6px 0 var(--primary-dark), 0 15px 20px rgba(255, 94, 125, 0.3);
+            cursor: pointer; transition: 0.1s; display: flex; justify-content: center; gap: 10px;
         }
-        .btn-main:active { 
-            transform: translateY(6px); 
-            box-shadow: 0 0 0 var(--primary-shadow), 0 5px 10px rgba(255, 94, 125, 0.3);
-        }
-        .btn-main.stop { 
-            background: #ef5350; 
-            box-shadow: 0 6px 0 #c62828, 0 15px 20px rgba(239, 83, 80, 0.3); 
-        }
-        .btn-main.stop:active {
-            box-shadow: 0 0 0 #c62828, 0 5px 10px rgba(239, 83, 80, 0.3);
-        }
+        .btn-main:active { transform: translateY(6px); box-shadow: 0 0 0 var(--primary-dark); }
+        .btn-main.stop { background: #ef5350; box-shadow: 0 6px 0 #c62828; }
+        .btn-main.stop:active { box-shadow: 0 0 0 #c62828; }
 
-        /* --- NAV BAR --- */
+        /* History List */
+        .history-list { width: 100%; max-width: 400px; }
+        .history-card {
+            background: white; border-radius: 20px; padding: 15px 20px;
+            margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .h-date { font-size: 12px; color: #aaa; }
+        .h-zone { font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .h-bpm { font-size: 22px; font-weight: 800; color: var(--primary); }
+
+        /* Profile Form */
+        .profile-card {
+            background: white; width: 100%; max-width: 350px;
+            border-radius: 30px; padding: 30px; text-align: center;
+            box-shadow: 0 10px 30px rgba(255, 94, 125, 0.1);
+        }
+        .avatar {
+            width: 80px; height: 80px; background: #ffebee; border-radius: 50%;
+            margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+            color: var(--primary); font-size: 40px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .input-box { margin-bottom: 15px; text-align: left; }
+        .input-box label { font-size: 12px; font-weight: 700; color: #a1887f; margin-left: 10px; }
+        .input-box input {
+            width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #ffebee;
+            font-size: 16px; font-family: 'Nunito'; color: var(--text-main); font-weight: 700;
+            background: #fff; outline: none; transition: 0.2s;
+        }
+        .input-box input:focus { border-color: var(--primary); }
+
+        /* Navigation Bar */
         .nav-bar {
-            width: 100%; height: 70px; background: white;
-            border-radius: 30px 30px 0 0;
-            display: flex; justify-content: space-around; align-items: center;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
-            z-index: 10;
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            height: calc(75px + var(--safe-area-bottom));
+            background: white; border-radius: 30px 30px 0 0;
+            display: flex; justify-content: space-around; align-items: flex-start;
+            padding-top: 15px; box-shadow: 0 -5px 20px rgba(0,0,0,0.03);
+            z-index: 100;
         }
-        .nav-item { color: #cfd8dc; display: flex; flex-direction: column; align-items: center; }
-        .nav-item.active { color: var(--primary); }
-        .material-symbols-rounded { font-size: 28px; }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #cfd8dc; cursor: pointer; transition: 0.2s;
+        }
+        .nav-item.active { color: var(--primary); transform: translateY(-5px); }
+        .nav-item span { font-size: 28px; }
+        .nav-item label { font-size: 10px; font-weight: 700; margin-top: 2px; }
 
-        /* Helpers */
+        /* Setup Modal */
+        #setupModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,240,245,0.95); z-index: 2000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
         video { position: absolute; width: 1px; opacity: 0; pointer-events: none; }
         .beating { animation: heartbeat 0.25s ease-out; }
-        @keyframes heartbeat { 0% { transform: scale(1); } 40% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        @keyframes heartbeat { 0% { transform: scale(1); } 40% { transform: scale(1.15); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div id="setupScreen">
-        <div class="setup-card">
-            <span class="material-symbols-rounded" style="font-size: 64px; color: var(--primary);">favorite</span>
-            <h2 style="color: #880e4f; margin: 10px 0;">PulseHeart</h2>
-            <p style="color: #8d6e63; font-size: 14px; margin-bottom: 20px;">ใส่อายุเพื่อความแม่นยำนะคะ</p>
-            <div class="input-group">
-                <input type="number" id="ageInput" placeholder="25" inputmode="numeric">
+    <div id="setupModal">
+        <div class="profile-card" style="box-shadow: 0 20px 50px rgba(255, 94, 125, 0.25);">
+            <span class="material-symbols-rounded" style="font-size: 60px; color: var(--primary);">favorite</span>
+            <h2 style="color: #880e4f;">Welcome!</h2>
+            <p style="color: #a1887f; font-size: 14px; margin-bottom: 20px;">ตั้งค่าข้อมูลของคุณเพื่อเริ่มใช้งาน</p>
+            <div class="input-box">
+                <input type="text" id="setupName" placeholder="ชื่อเล่นของคุณ">
             </div>
-            <button class="btn-main" onclick="startApp()">เริ่มใช้งาน</button>
-        </div>
-    </div>
-
-    <div class="header">
-        <div class="app-title">
-            PulseHeart <span style="font-size: 12px; background: #ffe0b2; color: #e65100; padding: 2px 8px; border-radius: 10px; margin-left: 5px;">PRO</span>
-        </div>
-        <div class="subtitle" id="userInfoDisplay">Welcome, User</div>
-    </div>
-
-    <div class="monitor-wrapper">
-        <div class="pulse-ring">
-            <span class="material-symbols-rounded heart-bg" id="heartIcon">favorite</span>
-            <div id="bpmDisplay" class="bpm-value">--</div>
-            <div class="bpm-unit">BPM</div>
-        </div>
-    </div>
-
-    <div class="dashboard">
-        <div class="stats-row">
-            <div class="stat-item">
-                <div id="avgVal" class="stat-val">--</div>
-                <div class="stat-lbl">Average</div>
+            <div class="input-box">
+                <input type="number" id="setupAge" placeholder="อายุ (ปี)">
             </div>
-            <div class="stat-item">
-                <div id="zoneVal" class="stat-val" style="font-size: 16px;">--</div>
-                <div class="stat-lbl">Heart Zone</div>
-            </div>
-        </div>
-        <div class="graph-card">
-            <canvas id="graphCanvas"></canvas>
+            <button class="btn-main" onclick="finishSetup()">Let's Go!</button>
         </div>
     </div>
 
-    <div class="controls">
-        <button id="actionBtn" class="btn-main" onclick="toggleMeasure()">
-            <span class="material-symbols-rounded">play_circle</span>
-            เริ่มวัดชีพจร
-        </button>
+    <div class="page-container">
+
+        <div id="page-home" class="page active">
+            <div class="header">
+                <div class="app-title">PulseHeart <span style="font-size: 12px; background: #ffe0b2; color: #e65100; padding: 2px 8px; border-radius: 10px;">PRO</span></div>
+                <div class="subtitle" id="homeSubtitle">Ready to measure</div>
+            </div>
+
+            <div class="monitor-ring">
+                <span class="material-symbols-rounded heart-bg" id="heartIcon">favorite</span>
+                <div id="bpmDisplay" class="bpm-val">--</div>
+                <div class="bpm-unit">BPM</div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div id="avgVal" class="stat-val">--</div>
+                    <div class="stat-lbl">AVERAGE</div>
+                </div>
+                <div class="stat-item">
+                    <div id="zoneVal" class="stat-val" style="font-size: 16px;">--</div>
+                    <div class="stat-lbl">ZONE</div>
+                </div>
+            </div>
+
+            <div class="graph-card">
+                <canvas id="graphCanvas"></canvas>
+            </div>
+
+            <button id="actionBtn" class="btn-main" onclick="toggleMeasure()">
+                <span class="material-symbols-rounded">play_circle</span> เริ่มวัด (START)
+            </button>
+        </div>
+
+        <div id="page-history" class="page">
+            <div class="header">
+                <div class="app-title">History</div>
+                <div class="subtitle">ประวัติการวัดของคุณ</div>
+            </div>
+            <div id="historyList" class="history-list">
+                <div style="text-align: center; color: #aaa; margin-top: 50px;">ไม่มีข้อมูลประวัติ</div>
+            </div>
+            <button class="btn-main" onclick="clearHistory()" style="margin-top: 20px; background: #b0bec5; box-shadow: 0 6px 0 #90a4ae;">
+                <span class="material-symbols-rounded">delete</span> ล้างประวัติ
+            </button>
+        </div>
+
+        <div id="page-profile" class="page">
+            <div class="header">
+                <div class="app-title">Profile</div>
+                <div class="subtitle">แก้ไขข้อมูลส่วนตัว</div>
+            </div>
+            <div class="profile-card">
+                <div class="avatar"><span class="material-symbols-rounded">person</span></div>
+                <div class="input-box">
+                    <label>ชื่อเล่น</label>
+                    <input type="text" id="profileName">
+                </div>
+                <div class="input-box">
+                    <label>อายุ (ปี)</label>
+                    <input type="number" id="profileAge">
+                </div>
+                <button class="btn-main" onclick="saveProfile()">
+                    <span class="material-symbols-rounded">save</span> บันทึกข้อมูล
+                </button>
+            </div>
+            <p style="margin-top: 30px; font-size: 12px; color: #cfd8dc;">PulseHeart v5.0 (Medical Grade)</p>
+        </div>
+
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item"><span class="material-symbols-rounded">history</span></div>
-        <div class="nav-item active"><span class="material-symbols-rounded">home</span></div>
-        <div class="nav-item"><span class="material-symbols-rounded">person</span></div>
+        <div class="nav-item" onclick="navTo('history')">
+            <span class="material-symbols-rounded">history</span>
+            <label>ประวัติ</label>
+        </div>
+        <div class="nav-item active" onclick="navTo('home')">
+            <span class="material-symbols-rounded">ecg_heart</span>
+            <label>วัดชีพจร</label>
+        </div>
+        <div class="nav-item" onclick="navTo('profile')">
+            <span class="material-symbols-rounded">person</span>
+            <label>โปรไฟล์</label>
+        </div>
     </div>
 
     <video id="video" playsinline></video>
 
     <script>
-        // --- Medical Grade Configuration ---
-        let userAge = 25;
-        // Refractory Period: 350ms (กันการนับซ้ำ = แก้ปัญหาเลขสูงเกิน)
-        const REFRACTORY_PERIOD = 350; 
+        // --- APP STATE & CONFIG ---
+        let userData = { name: "", age: 25, history: [] };
+        let isRunning = false;
+        let rafId;
         
-        // --- Elements ---
+        // Medical Grade Config
+        const REFRACTORY_PERIOD = 350; // ms
+        
+        // Elements
         const video = document.getElementById('video');
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const graphCanvas = document.getElementById('graphCanvas');
         const graphCtx = graphCanvas.getContext('2d');
         
-        // --- State ---
-        let isRunning = false;
-        let rafId;
+        // Measurement Vars
         let signalBuffer = new Array(120).fill(0.5);
-        let bpmHistory = [];
+        let bpmBuffer = [];
         let sessionReadings = [];
         let lastBeatTime = 0;
         let minVal = 0, maxVal = 0;
 
-        function startApp() {
-            let val = document.getElementById('ageInput').value;
-            if(val > 5 && val < 100) {
-                userAge = parseInt(val);
-                document.getElementById('setupScreen').style.opacity = '0';
-                setTimeout(() => document.getElementById('setupScreen').style.display = 'none', 500);
-                document.getElementById('userInfoDisplay').innerText = `Age: ${userAge} | Medical Grade Sensor`;
-            } else alert("กรุณาระบุอายุให้ถูกต้อง");
-        }
+        // --- INIT ---
+        window.onload = function() {
+            loadData();
+            resizeGraph();
+            if(!userData.name) {
+                document.getElementById('setupModal').style.display = 'flex';
+            } else {
+                document.getElementById('setupModal').style.display = 'none';
+                updateUI();
+            }
+        };
 
         function resizeGraph() {
             graphCanvas.width = graphCanvas.offsetWidth * 2;
             graphCanvas.height = graphCanvas.offsetHeight * 2;
         }
-        window.onresize = resizeGraph; resizeGraph();
 
+        // --- NAVIGATION SYSTEM ---
+        function navTo(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            // Show target page
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            
+            // Update Nav Icons
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            // Find the clicked element (trickier since event targets child)
+            // Instead, we manually highlight based on index or logic. 
+            // Simple way: re-render nav state
+            let icons = document.querySelectorAll('.nav-item');
+            if(pageId === 'history') icons[0].classList.add('active');
+            if(pageId === 'home') icons[1].classList.add('active');
+            if(pageId === 'profile') icons[2].classList.add('active');
+
+            if(pageId === 'history') renderHistory();
+        }
+
+        // --- SETUP & DATA ---
+        function finishSetup() {
+            let n = document.getElementById('setupName').value;
+            let a = document.getElementById('setupAge').value;
+            if(n && a) {
+                userData.name = n;
+                userData.age = parseInt(a);
+                saveData();
+                document.getElementById('setupModal').style.display = 'none';
+                updateUI();
+            } else alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+        }
+
+        function saveProfile() {
+            userData.name = document.getElementById('profileName').value;
+            userData.age = parseInt(document.getElementById('profileAge').value);
+            saveData();
+            alert("บันทึกข้อมูลเรียบร้อย!");
+            updateUI();
+        }
+
+        function saveData() { localStorage.setItem('pulseHeartPro', JSON.stringify(userData)); }
+        function loadData() {
+            let d = localStorage.getItem('pulseHeartPro');
+            if(d) userData = JSON.parse(d);
+        }
+
+        function updateUI() {
+            document.getElementById('homeSubtitle').innerText = `สวัสดีคุณ ${userData.name}`;
+            document.getElementById('profileName').value = userData.name;
+            document.getElementById('profileAge').value = userData.age;
+        }
+
+        // --- MEASUREMENT LOGIC (MEDICAL GRADE) ---
         async function toggleMeasure() {
             let btn = document.getElementById('actionBtn');
-            
-            if (!isRunning) {
+            if(!isRunning) {
                 try {
-                    // เปิดกล้อง
                     let stream = await navigator.mediaDevices.getUserMedia({ 
                         video: { facingMode: "environment", width: {ideal: 100}, height: {ideal: 100} } 
                     });
                     video.srcObject = stream; await video.play();
-                    
-                    // เปิดแฟลช
                     try { await stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: true }] }); } catch(e){}
 
                     isRunning = true;
@@ -285,16 +369,16 @@
                     btn.classList.add('stop');
                     
                     // Reset
-                    bpmHistory = []; sessionReadings = [];
+                    bpmBuffer = []; sessionReadings = [];
                     document.getElementById('bpmDisplay').innerText = "--";
                     document.getElementById('avgVal').innerText = "--";
-                    updateStatus("Scanning...", "var(--primary)");
+                    document.getElementById('zoneVal').innerText = "Scanning...";
                     
                     loop();
-                } catch(e) { alert("กรุณาเปิดสิทธิ์กล้องใน Safari"); }
+                } catch(e) { alert("กรุณาเปิดสิทธิ์กล้องใน Settings"); }
             } else {
                 stopCamera();
-                analyzeResult();
+                if(sessionReadings.length > 5) saveHistoryItem();
             }
         }
 
@@ -302,7 +386,7 @@
             isRunning = false; cancelAnimationFrame(rafId);
             if(video.srcObject) video.srcObject.getTracks().forEach(t=>t.stop());
             let btn = document.getElementById('actionBtn');
-            btn.innerHTML = `<span class="material-symbols-rounded">replay</span> เริ่มวัดใหม่`;
+            btn.innerHTML = `<span class="material-symbols-rounded">play_circle</span> เริ่มวัด (START)`;
             btn.classList.remove('stop');
             document.getElementById('heartIcon').classList.remove('beating');
         }
@@ -310,15 +394,15 @@
         function loop() {
             if(!isRunning) return;
 
-            // 1. อ่านค่าแสง (Center Sampling)
+            // 1. Read Light
             ctx.drawImage(video, 0, 0, 30, 30);
             let frame = ctx.getImageData(15, 15, 1, 1).data;
-            let avg = frame[0]; // สีแดง
+            let avg = frame[0];
 
-            // 2. Auto-Gain Logic
+            // 2. Process
             if(minVal===0) { minVal=avg; maxVal=avg; }
             minVal = Math.min(minVal, avg); maxVal = Math.max(maxVal, avg);
-            minVal += 0.5; maxVal -= 0.5; // Decay
+            minVal += 0.5; maxVal -= 0.5;
 
             let range = Math.max(1, maxVal - minVal);
             let inverted = 1.0 - ((avg - minVal) / range);
@@ -327,110 +411,38 @@
             if(signalBuffer.length > 120) signalBuffer.shift();
             drawGraph();
 
-            // 3. Peak Detection (Medical Grade Logic)
-            // Threshold = 0.65 (ต้องเป็นคลื่นที่ชัดจริงๆ)
+            // 3. Detect Peak (Anti-Double Count)
             if(inverted > 0.65) {
                 let now = Date.now();
-                // **Anti-Double Count**: เช็คว่าเวลาห่างจากครั้งล่าสุดเกิน 350ms หรือไม่
                 if(now - lastBeatTime > REFRACTORY_PERIOD) {
-                    let interval = (now - lastBeatTime) / 1000;
+                    let bpm = 60 / ((now - lastBeatTime)/1000);
                     lastBeatTime = now;
-                    let bpm = 60 / interval;
-
-                    // Range Check (50 - 170 BPM)
-                    if(bpm > 50 && bpm < 170) {
-                        updateBPM(Math.round(bpm));
-                    }
+                    if(bpm > 50 && bpm < 170) updateBPM(Math.round(bpm));
                 }
             }
             rafId = requestAnimationFrame(loop);
         }
 
         function updateBPM(bpm) {
-            bpmHistory.push(bpm);
-            if(bpmHistory.length > 5) bpmHistory.shift(); // Moving Average of 5
+            bpmBuffer.push(bpm); if(bpmBuffer.length > 5) bpmBuffer.shift();
+            let avg = Math.round(bpmBuffer.reduce((a,b)=>a+b,0)/bpmBuffer.length);
 
-            // ตัดค่าที่โดดผิดปกติ (Outlier Removal)
-            let sorted = [...bpmHistory].sort((a,b)=>a-b);
-            let valid = sorted;
-            if(sorted.length > 4) valid = sorted.slice(1, -1);
-
-            let avg = Math.round(valid.reduce((a,b)=>a+b,0) / valid.length);
-            
+            // Display
             document.getElementById('bpmDisplay').innerText = avg;
-            
-            // Animation
             let icon = document.getElementById('heartIcon');
             icon.classList.remove('beating'); void icon.offsetWidth; icon.classList.add('beating');
 
-            // Session Stats
-            if(bpmHistory.length >= 5) {
+            // Collect
+            if(bpmBuffer.length >= 5) {
                 sessionReadings.push(avg);
-                // Live Average
                 let totalAvg = Math.round(sessionReadings.reduce((a,b)=>a+b,0)/sessionReadings.length);
                 document.getElementById('avgVal').innerText = totalAvg;
                 document.getElementById('zoneVal').innerText = getZone(totalAvg);
-                document.getElementById('zoneVal').style.color = getZoneColor(totalAvg);
             }
         }
 
-        function getZone(bpm) {
-            let max = 220 - userAge;
-            let p = (bpm/max)*100;
-            if(p<50) return "Warm Up";
-            if(p<60) return "Fat Burn";
-            if(p<70) return "Cardio";
-            if(p<80) return "Hard";
-            return "Peak";
-        }
-        function getZoneColor(bpm) {
-             let max = 220 - userAge;
-             let p = (bpm/max)*100;
-             if(p<60) return "#81c784";
-             if(p<80) return "#ffb74d";
-             return "#e57373";
-        }
-
-        function updateStatus(text, color) {
-            // Placeholder if needed
-        }
-
-        function analyzeResult() {
-            if(sessionReadings.length > 5) {
-                let sum = sessionReadings.reduce((a,b)=>a+b,0);
-                let avg = Math.round(sum/sessionReadings.length);
-                alert(`💗 สรุปผล: ${avg} BPM (${getZone(avg)})`);
-            } else {
-                alert("ข้อมูลไม่เพียงพอ กรุณาวัดให้นานขึ้น");
-            }
-        }
-
-        function drawGraph() {
-            let w = graphCanvas.width, h = graphCanvas.height;
-            graphCtx.clearRect(0,0,w,h);
-            
-            // Gradient Fill
-            let grad = graphCtx.createLinearGradient(0,0,0,h);
-            grad.addColorStop(0, "rgba(255, 94, 125, 0.2)");
-            grad.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-            graphCtx.beginPath();
-            let step = w/120;
-            
-            // Smooth Bezier Curve Simulation
-            graphCtx.moveTo(0, h - (signalBuffer[0]*h*0.8)-10);
-            for(let i=1; i<signalBuffer.length; i++){
-                let y = h - (signalBuffer[i]*h*0.8) - 10;
-                graphCtx.lineTo(i*step, y);
-            }
-            
-            graphCtx.strokeStyle = "#ff5e7d"; graphCtx.lineWidth = 6; 
-            graphCtx.lineJoin = "round"; graphCtx.stroke();
-            
-            graphCtx.lineTo(w, h); graphCtx.lineTo(0, h);
-            graphCtx.fillStyle = grad; graphCtx.fill();
-        }
-    </script>
-</body>
-</html>
-
+        // --- HISTORY LOGIC ---
+        function saveHistoryItem() {
+            let sum = sessionReadings.reduce((a,b)=>a+b,0);
+            let avg = Math.round(sum/sessionReadings.length);
+ 
