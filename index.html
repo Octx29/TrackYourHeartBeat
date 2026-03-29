@@ -627,6 +627,84 @@
         }
 
         .hidden { display: none !important; }
+
+        /* === AUTO-STOP WIDGET === */
+        .autostop-widget {
+            display: none;              /* shown only while measuring */
+            align-items: center;
+            gap: 14px;
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(236,64,122,0.12);
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+
+        .autostop-widget.visible { display: flex; }
+
+        /* SVG arc ring */
+        .autostop-ring-wrap {
+            position: relative;
+            width: 52px; height: 52px;
+            flex-shrink: 0;
+        }
+
+        .autostop-ring-wrap svg { transform: rotate(-90deg); }
+
+        .arc-track {
+            fill: none;
+            stroke: rgba(236,64,122,0.1);
+            stroke-width: 4;
+        }
+
+        .arc-fill {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            /* circumference = 2π × 22 ≈ 138.23 */
+            stroke-dasharray: 138.23;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.4s ease;
+        }
+
+        .autostop-ring-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--rose-deep);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .autostop-info { flex: 1; min-width: 0; }
+
+        .autostop-title {
+            font-size: 11px; font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.8px;
+            margin-bottom: 3px;
+        }
+
+        .autostop-desc {
+            font-size: 12px; font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .autostop-tier {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 10px; font-weight: 800;
+            color: white;
+            background: var(--rose-primary);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -765,6 +843,23 @@
         </div>
 
         <div class="controls-section">
+            <!-- Auto-stop countdown widget (visible only during measurement) -->
+            <div class="autostop-widget" id="autostopWidget">
+                <div class="autostop-ring-wrap">
+                    <svg width="52" height="52" viewBox="0 0 52 52">
+                        <circle class="arc-track" cx="26" cy="26" r="22"/>
+                        <circle class="arc-fill" id="arcFill" cx="26" cy="26" r="22"
+                                stroke="var(--rose-primary)"/>
+                    </svg>
+                    <div class="autostop-ring-label" id="arcLabel">60</div>
+                </div>
+                <div class="autostop-info">
+                    <div class="autostop-title">Auto-Stop</div>
+                    <div class="autostop-desc" id="autostopDesc">Waiting for stable signal…</div>
+                    <div class="autostop-tier" id="autostopTier" style="background:var(--rose-light)">Calibrating</div>
+                </div>
+            </div>
+
             <button id="actionBtn" class="btn-action" onclick="toggleMeasurement()">
                 <span class="material-symbols-rounded btn-icon">play_circle</span>
                 Start Measurement
@@ -801,6 +896,19 @@
             MOVING_AVG_WINDOW: 7,
             HRV_WINDOW: 12,
             SESSION_HISTORY_MAX: 10,
+
+            // ── Auto-stop bounds ─────────────────────────────────────
+            // dynamicStopTime = ceil − range × stabilityScore
+            // stabilityScore = 1.0  →  30 s  (excellent signal)
+            // stabilityScore = 0.0  →  60 s  (poor / unstable signal)
+            AUTO_STOP_FLOOR:  30,   // minimum possible stop time (seconds)
+            AUTO_STOP_CEIL:   60,   // maximum / hard-stop time   (seconds)
+            // Confidence thresholds that define stability tiers
+            AUTO_STOP_TIER_EXCELLENT: 0.85,
+            AUTO_STOP_TIER_GOOD:      0.70,
+            AUTO_STOP_TIER_FAIR:      0.55,
+            // How many past seconds to average for stability score
+            AUTO_STOP_STABILITY_WINDOW: 8,
         };
 
         // ─── OPT #1: Circular Buffer class — O(1) push, no GC pressure ───
@@ -855,6 +963,13 @@
             validBeats: 0,
             sessionHistory: [],
             frameCount: 0,   // OPT #5: frame counter for selective redraws
+
+            // ── Auto-stop tracking ────────────────────────────────────
+            lastTickSecond: -1,              // last integer second we ticked
+            confidencePerSec: [],            // one confidence sample per second
+            autoStopTime: 60,                // dynamic target (seconds), initialised to ceil
+            stabilityScore: 0,               // 0–1
+            stabilityTier: 'calibrating',    // calibrating | poor | fair | good | excellent
         };
 
         const video = document.getElementById('video');
@@ -867,6 +982,98 @@
 
         const waveformCanvas = document.getElementById('waveformCanvas');
         const waveformCtx = waveformCanvas.getContext('2d');
+
+        // ═══════════════════════════════════════════════════════════════
+        // AUTO-STOP ENGINE
+        // ─ dynamicStopTime = CEIL − (CEIL − FLOOR) × stabilityScore
+        // ─ stabilityScore  = rolling avg confidence over last N seconds
+        // ─ tiers: calibrating → poor (60s) → fair (≈50s) → good (≈40s) → excellent (30s)
+        // ═══════════════════════════════════════════════════════════════
+
+        function resetAutoStop() {
+            STATE.lastTickSecond   = -1;
+            STATE.confidencePerSec = [];
+            STATE.autoStopTime     = CONFIG.AUTO_STOP_CEIL;
+            STATE.stabilityScore   = 0;
+            STATE.stabilityTier    = 'calibrating';
+            updateAutoStopUI(0, CONFIG.AUTO_STOP_CEIL, CONFIG.AUTO_STOP_CEIL);
+        }
+
+        function tickAutoStop(elapsed) {
+            // 1. Record current confidence sample
+            STATE.confidencePerSec.push(STATE.confidence);
+
+            // Keep only the rolling window
+            const win = CONFIG.AUTO_STOP_STABILITY_WINDOW;
+            if (STATE.confidencePerSec.length > win) STATE.confidencePerSec.shift();
+
+            // 2. Compute stability score — only after floor period
+            if (elapsed >= CONFIG.AUTO_STOP_FLOOR && STATE.confidencePerSec.length >= 3) {
+                const sum = STATE.confidencePerSec.reduce((a, b) => a + b, 0);
+                STATE.stabilityScore = sum / STATE.confidencePerSec.length;
+
+                // Dynamic target: interpolate between floor and ceil
+                STATE.autoStopTime = Math.round(
+                    CONFIG.AUTO_STOP_CEIL - (CONFIG.AUTO_STOP_CEIL - CONFIG.AUTO_STOP_FLOOR) * STATE.stabilityScore
+                );
+
+                // Determine tier
+                if (STATE.stabilityScore >= CONFIG.AUTO_STOP_TIER_EXCELLENT)
+                    STATE.stabilityTier = 'excellent';
+                else if (STATE.stabilityScore >= CONFIG.AUTO_STOP_TIER_GOOD)
+                    STATE.stabilityTier = 'good';
+                else if (STATE.stabilityScore >= CONFIG.AUTO_STOP_TIER_FAIR)
+                    STATE.stabilityTier = 'fair';
+                else
+                    STATE.stabilityTier = 'poor';
+
+                // 3. Trigger if time reached target
+                if (elapsed >= STATE.autoStopTime) {
+                    stopMeasurement();
+                    return;
+                }
+            }
+
+            // 4. Update ring UI
+            updateAutoStopUI(elapsed, STATE.autoStopTime, CONFIG.AUTO_STOP_CEIL);
+        }
+
+        // CIRCUMFERENCE = 2π × 22 ≈ 138.23
+        const ARC_C = 2 * Math.PI * 22;
+
+        function updateAutoStopUI(elapsed, targetTime, maxTime) {
+            const remaining = Math.max(0, targetTime - elapsed);
+            const arcFill   = document.getElementById('arcFill');
+            const arcLabel  = document.getElementById('arcLabel');
+            const descEl    = document.getElementById('autostopDesc');
+            const tierEl    = document.getElementById('autostopTier');
+
+            // Arc drains from full → empty as elapsed → targetTime
+            const progress = elapsed < CONFIG.AUTO_STOP_FLOOR
+                ? 0                                       // calibrating: don't drain yet
+                : Math.min(1, (elapsed - CONFIG.AUTO_STOP_FLOOR) / Math.max(1, targetTime - CONFIG.AUTO_STOP_FLOOR));
+            arcFill.style.strokeDashoffset = (ARC_C * progress).toFixed(2);
+
+            arcLabel.textContent = remaining;
+
+            const TIER_STYLES = {
+                calibrating: { color: '#f48fb1', label: 'Calibrating',  desc: 'Building signal history…' },
+                poor:        { color: '#ef5350', label: 'Unstable',     desc: `Stopping at ~${targetTime}s — low signal` },
+                fair:        { color: '#ffa726', label: 'Fair',         desc: `Stopping at ~${targetTime}s — improving` },
+                good:        { color: '#66bb6a', label: 'Good',         desc: `Stopping at ~${targetTime}s — stable` },
+                excellent:   { color: '#42a5f5', label: 'Excellent',    desc: `Stopping at ${targetTime}s — locked in` },
+            };
+
+            const tier = TIER_STYLES[STATE.stabilityTier] || TIER_STYLES.calibrating;
+            arcFill.style.stroke   = tier.color;
+            tierEl.style.background = tier.color;
+            tierEl.textContent      = tier.label;
+            descEl.textContent      = elapsed < CONFIG.AUTO_STOP_FLOOR
+                ? `Minimum ${CONFIG.AUTO_STOP_FLOOR}s collection…`
+                : tier.desc;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
 
         function init() {
             resizeCanvas();
@@ -972,6 +1179,8 @@
                 document.getElementById('glowRings').style.opacity = '1';
                 document.getElementById('liveDot').style.display = 'block';
                 document.getElementById('statusIndicator').classList.add('active');
+                document.getElementById('autostopWidget').classList.add('visible');
+                resetAutoStop();
 
                 // OPT #2: Use requestVideoFrameCallback for frame-accurate sampling
                 if ('requestVideoFrameCallback' in video) {
@@ -1033,6 +1242,12 @@
             const elapsed = Math.floor((Date.now() - STATE.startTime) / 1000);
             document.getElementById('duration').textContent =
                 `${Math.floor(elapsed/60)}:${(elapsed%60).toString().padStart(2,'0')}`;
+
+            // Auto-stop: tick once per second, check stability-based target
+            if (elapsed !== STATE.lastTickSecond) {
+                STATE.lastTickSecond = elapsed;
+                tickAutoStop(elapsed);
+            }
         }
 
         function stopMeasurement() {
@@ -1044,6 +1259,7 @@
             document.getElementById('glowRings').style.opacity = '0';
             document.getElementById('liveDot').style.display = 'none';
             document.getElementById('statusIndicator').classList.remove('active');
+            document.getElementById('autostopWidget').classList.remove('visible');
 
             analyzeSession();
         }
@@ -1068,6 +1284,12 @@
             STATE.minVal = 255; STATE.maxVal = 0; STATE.dcOffset = 0;
             STATE.validBeats = 0; STATE.signalQuality = 0; STATE.confidence = 0;
             STATE.frameCount = 0;
+            // Auto-stop reset
+            STATE.lastTickSecond = -1;
+            STATE.confidencePerSec = [];
+            STATE.autoStopTime = CONFIG.AUTO_STOP_CEIL;
+            STATE.stabilityScore = 0;
+            STATE.stabilityTier = 'calibrating';
 
             document.getElementById('bpmValue').textContent = '--';
             document.getElementById('avgBpm').textContent = '--';
